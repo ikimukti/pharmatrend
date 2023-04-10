@@ -1,4 +1,6 @@
-# skripsi-arip
+# Skripsi Arip - Web Application for Thesis Process
+
+Skripsi Arip is a web application that is used to help the process of making a thesis. This web application of K-Means method and Trend Moment for drug stock prediction at PT. Lestari Jaya Farma (LJF) in the city of Kediri. This web application is made using the MERN stack (MySQL, PHP, NodeJS) and Tailwind CSS.
 
 ## Preparation for the project
 
