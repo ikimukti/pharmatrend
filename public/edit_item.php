@@ -6,6 +6,22 @@ if(!isset($_SESSION["id"])){
     
     die();
 }
+require_once('config.php');
+$id = $_GET['id'];
+$sql = "SELECT * FROM items WHERE id = $id";
+$query = mysqli_query($conn, $sql);
+if(mysqli_num_rows($query) > 0){
+    $row = mysqli_fetch_assoc($query);
+    $name_old = $row["name"];
+    $code_old = $row["code"];
+    $price_old = $row["price"];
+    $stock_old = $row["stock"];
+    $created_at_old = $row["created_at"];
+    $updated_at_old = $row["updated_at"];
+    $id_user = $row["id_user"];
+}else{
+    echo "Error fetching data: " . mysqli_error($conn);
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -13,7 +29,7 @@ if(!isset($_SESSION["id"])){
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Item - ARIPSKRIPSI</title>
+    <title>Edit Item- ARIPSKRIPSI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
@@ -43,7 +59,7 @@ if(!isset($_SESSION["id"])){
                         <span class="text-gray-700">/</span>
                         <a href="items.php" class="text-gray-700 hover:text-gray-950">Items</a>
                         <span class="text-gray-700">/</span>
-                        <a href="add_item.php" class="text-gray-700 hover:text-gray-950">Add Item</a>
+                        <a href="edit_item.php?id=<?php echo $id; ?>" class="text-gray-700 hover:text-gray-950">Edit Item</a>
                     </div>
                     <hr>
                     <!-- content -->
@@ -52,7 +68,7 @@ if(!isset($_SESSION["id"])){
                             <!-- flex row -->
                             <div class="flex flex-row items-center justify-between">
                                 <div class="flex flex-row items-center gap-2">
-                                    <h1 class="text-2xl font-bold">Add Item</h1>
+                                    <h1 class="text-2xl font-bold">Edit Item</h1>
                                 </div>
                             </div>
                             <!-- div form add item -->
@@ -81,36 +97,31 @@ if(!isset($_SESSION["id"])){
                                             }
                                         }
                                         else{
-                                            require_once("config.php");
-                                            $created_at = date("Y-m-d H:i:s");
+                                            $created_at = $created_at_old;
                                             $updated_at = date("Y-m-d H:i:s");
                                             $id_user = $_SESSION["id"];
-                                            $sql = "SELECT * FROM items WHERE code = '$code' OR name = '$name'";
-                                            $query = mysqli_query($conn, $sql);
-                                            if(mysqli_num_rows($query) > 0){
-                                                echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Code or name already exist</div>";
-                                            }else{
-                                                $sql = "INSERT INTO items (name, code, price, stock, created_at, updated_at, id_user) VALUES ('$name', '$code', '$price', '$stock', '$created_at', '$updated_at', '$id_user')";
-                                                // save to database and check if success or not and redirect to items.php
-                                                if(mysqli_query($conn, $sql)){
-                                                    // header already sent error fix
-                                                    ob_start();
-                                                    if(!headers_sent()){
-                                                        header("Location: items.php");
-                                                    } else{
-                                                        echo "<script>window.location.href='items.php';</script>";
-                                                    }
-                                                }else{
-                                                    echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Failed to add item</div>";
+                                            // update data to database
+                                            $sql = "UPDATE `items` SET `name`='$name',`code`='$code',`price`='$price',`stock`='$stock',`created_at`='$created_at',`updated_at`='$updated_at',`id_user`='$id_user' WHERE id = $id";
+                                            if(mysqli_query($conn, $sql)){
+                                                // header already sent error fix
+                                                ob_start();
+                                                if(!headers_sent()){
+                                                    header("Location: items.php");
+                                                } else{
+                                                    echo "<script>window.location.href='items.php';</script>";
                                                 }
+                                            }
+                                            else{
+                                                echo "Error updating data: " . mysqli_error($conn);
                                             }
                                         }
                                     }
                                 ?>
-                                <form action="add_item.php" method="post">
+                                <form action="edit_item.php?id=<?php echo $id; ?>" method="POST" class="flex flex-col gap-4">
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="name" class="text-sm">Name</label>
-                                        <input type="text" name="name" id="name" class="border-2 border-gray-200 rounded-md p-2">
+                                        <input type="text" name="name" id="name" class="border-2 border-gray-200 rounded-md p-2"
+                                            placeholder="Item name" value="<?php echo isset($_POST["name"]) ? $_POST["name"] : $name_old; ?>">
                                     </div>
                                     <!-- code -->
                                     <?php
@@ -119,13 +130,13 @@ if(!isset($_SESSION["id"])){
                                     ?>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="code" class="text-sm">Code</label>
-                                        <input type="text" name="code" id="code" class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $code; ?>" readonly>
+                                        <input type="text" name="code" id="code" class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $code; ?>" readonly placeholder="Item code" value="<?php echo isset($_POST["code"]) ? $_POST["code"] : $code_old; ?>">
                                     </div>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="price" class="text-sm">Price</label>
                                         <div class="flex flex-row items-center gap-2">
                                             <h1 class="text-sm">Rp.</h1>
-                                            <input type="number" name="price" id="price" class="border-2 border-gray-200 rounded-md p-2 w-full">
+                                            <input type="number" name="price" id="price" class="border-2 border-gray-200 rounded-md p-2 w-full" placeholder="Item price" value="<?php echo isset($_POST["price"]) ? $_POST["price"] : $price_old; ?>">
                                         </div>
                                     </div>
                                     <!-- <div class="flex flex-col gap-2 mt-2">

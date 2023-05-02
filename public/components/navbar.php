@@ -1,21 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - ARIPSKRIPSI</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="css/output.css">
-</head>
-
-<body class="font-inter bg-gradient-to-tr from-blue-200 via-teal-200 to-yellow-200 h-screen">
-    <header class="bg-white fixed top-0 w-full">
-        <nav class="flex items-center justify-between flex-wrap w-94% mx-auto py-1">
+<nav class="flex items-center justify-between flex-wrap w-94% mx-auto py-1">
             <div class="">
                 <h1 class="text-2xl font-bold px-4 py-2">
                     SKRIPSI
@@ -24,17 +7,24 @@
             </div>
             <div class="">
                 <ul class="flex items-center gap-4">
+                    <?php
+                        if(!isset($_SESSION["id"])){
+                    ?>
                     <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">Home</a>
+                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950">Home</a>
+                    </li>
+                    <?php
+                        }
+                    ?>
+                    
+                    <li class="px-4 py-2">
+                        <a href="about.php" class="text-gray-700 hover:text-gray-950">About</a>
                     </li>
                     <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">About</a>
+                        <a href="contact.php" class="text-gray-700 hover:text-gray-950">Contact</a>
                     </li>
                     <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">Contact</a>
-                    </li>
-                    <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">Blog</a>
+                        <a href="blog.php" class="text-gray-700 hover:text-gray-950">Blog</a>
                     </li>
                 </ul>
             </div>
@@ -59,19 +49,3 @@
                 </div>
             </div>
         </nav>
-    </header>
-    <div class="container-fluid mx-auto h-screen">
-        <div class="flex flex-col items-center justify-center h-screen w-full content-center">
-            <h1 class="text-5xl font-bold text-gray-900">Selamat Datang di Skripsi Arip</h1>
-            <p class="text-2xl text-gray-600">Aplikasi Skripsi Arip</p>
-            <a class="bg-blue-400 text-white px-4 py-2 rounded-md mx-4 my-2 hover:bg-blue-600" href="signin.html">
-                Sign In
-            </a>
-        </div>
-    </div>
-    <footer class="w-full mx-auto text-center py-4 fixed bottom-0">
-        <p class="text-gray-700">Skripsi Arip &copy; 2023</p>
-    </footer>
-</body>
-
-</html>

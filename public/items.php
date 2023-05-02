@@ -1,21 +1,34 @@
 <?php
 session_start();
 if(!isset($_SESSION["id"])){
+    ob_start();
     header("Location: signin.php");
     
     die();
 }
 require_once("config.php");
-// item data with pagination
+// item data with pagination and descending order
 $limit = 10;
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
 $start = ($page > 1) ? ($page * $limit) - $limit : 0;
-$sql = "SELECT * FROM items LIMIT $start, $limit";
-$first_page = "items.php?page=1";
+$items = mysqli_query($conn, "SELECT * FROM items ORDER BY id DESC LIMIT $start, $limit");
+$items_all = mysqli_query($conn, "SELECT * FROM items");
+$total = mysqli_num_rows($items_all);
+$pages = ceil($total / $limit);
+$first_page = 1;
 $previous_page = $page - 1;
 $next_page = $page + 1;
-$result = mysqli_query($conn, $sql);
 $no = $start + 1;
+// search item
+if(isset($_GET  ["search"])){
+    $search = $_GET["search"];
+    $items = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' ORDER BY id DESC LIMIT $start, $limit");
+    $items_all = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%'");
+    $total = mysqli_num_rows($items_all);
+    $pages = ceil($total / $limit);
+    $previous = $page - 1;
+    $next = $page + 1;
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -33,89 +46,16 @@ $no = $start + 1;
 
 <body class="font-inter">
     <header class="bg-white w-full border-b-2 border-gray-200">
-        <nav class="flex items-center justify-between flex-wrap w-94% mx-auto py-1">
-            <div class="">
-                <h1 class="text-2xl font-bold px-4 py-2">
-                    SKRIPSI
-                    <span class="bg-gradient-to-br from-red-500 to-teal-400 bg-clip-text text-transparent">ARIP</span>
-                </h1>
-            </div>
-            <div class="">
-                <ul class="flex items-center gap-4">
-                    <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">Home</a>
-                    </li>
-                    <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">About</a>
-                    </li>
-                    <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">Contact</a>
-                    </li>
-                    <li class="px-4 py-2">
-                        <a href="#" class="text-gray-700 hover:text-gray-950">Blog</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="">
-                <!-- <button class="bg-blue-400 text-white px-4 py-2 rounded mx-4 my-2 hover:bg-blue-600">
-                    Login
-                </button> -->
-                <!-- account -->
-                <div>
-                    <button type="button"
-                        class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-                        id="options-menu" aria-haspopup="true" aria-expanded="true">
-                        Account
-                        <!-- Heroicon name: solid/chevron-down -->
-                        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                            fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </nav>
+        <?php
+            include("components/navbar.php");
+        ?>
     </header>
     <div class="container-fluid mx-auto h-auto">
         <!-- sidebar flex and container -->
         <div class="flex">
-            <div class="w-2/12 h-screen border-r-2 border-gray-200 p-2">
-                <div class="flex flex-col items-center justify-center mt-4">
-                    <h1 class="text-lg"><?php echo $_SESSION["fullname"]; ?></h1>
-                    <div class="flex flex-row items-center justify-center gap-2">
-                        <h2 class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full"><?php echo $_SESSION["role"]; ?></h2>
-                        <h2 class="text-sm text-gray-500 bg-green-200 px-2 py-1 rounded-full"><?php echo $_SESSION["status"]; ?></h2>
-                    </div>
-                </div>
-                <hr class="my-4">
-                <div>
-                    <ul class="mt-4">
-                        <li class="px-4 py-2">
-                            <a href="dashboard.php" class="text-gray-700 hover:text-gray-950">Dashboard</a>
-                        </li>
-                        <?php
-                        if($_SESSION["role"] == "admin"){
-                        ?>
-                        <li class="px-4 py-2">
-                            <a href="manage_user.php" class="text-gray-700 hover:text-gray-950">Manage User</a>
-                        </li>
-                        <?php
-                        }
-                        ?>
-                        <li class="px-4 py-2">
-                            <a href="items.php" class="text-gray-700 hover:text-gray-950">Items</a>
-                        </li>
-                        <li class="px-4 py-2">
-                            <a href="sales.php" class="text-gray-700 hover:text-gray-950">Sales</a>
-                        </li>
-                        <li class="px-4 py-2">
-                            <a href="analytics" class="text-gray-700 hover:text-gray-950">Analytics</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            <?php
+                include("components/sidebar.php");
+            ?>
             <div class="w-10/12 h-screen p-2">
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
@@ -161,34 +101,35 @@ $no = $start + 1;
                                             <th class="px-2 py-2">Item Code</th>
                                             <th class="px-2 py-2">Item Name</th>
                                             <th class="px-2 py-2">Price</th>
-                                            <th class="px-2 py-2">Stock</th>
+                                            <!-- <th class="px-2 py-2">Stock</th> -->
                                             <th class="px-2 py-2">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
-                                            
-                                            while($item = mysqli_fetch_assoc($result)){
+                                            while($item = mysqli_fetch_array($items)){
                                         ?>
                                         <tr class="border-b-2 border-gray-200">
                                             <td class="px-2 py-2"><?php echo $no++; ?></td>
                                             <td class="px-2 py-2"><?php echo $item["code"]; ?></td>
                                             <td class="px-2 py-2"><?php echo $item["name"]; ?></td>
-                                            <td class="px-2 py-2"><?php echo $item["price"]; ?></td>
-                                            <td class="px-2 py-2"><?php echo $item["stock"]; ?></td>
+                                            <td class="px-2 py-2">Rp. <?php echo number_format($item["price"]); ?></td>
+                                            <!-- <td class="px-2 py-2"></td> -->
                                             <td class="px-2 py-2">
                                                 <a href="edit_item.php?id=<?php echo $item["id"]; ?>"
                                                     class="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-600">
                                                     Edit
                                                 </a>
                                                 <a href="delete_item.php?id=<?php echo $item["id"]; ?>"
-                                                    class="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-600">
+                                                    class="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-600"
+                                                    onclick="return confirm('Are you sure you want to delete this item?');">
                                                     Delete
                                                 </a>
-                                                <a href="restock_item.php?id=<?php echo $item["id"]; ?>"
+                                                <!-- alert delete confirm -->
+                                                <!-- <a href="restock_item.php?id="
                                                     class="bg-green-400 text-white px-4 py-2 rounded hover:bg-green-600">
                                                     Restock
-                                                </a>
+                                                </a> -->
                                             </td>
                                         </tr>
                                         <?php
@@ -254,9 +195,10 @@ $no = $start + 1;
 
             </div>
         </div>
-        <footer class=" w-full mx-auto text-center py-4 bottom-0 border border-gray-200">
-            <p class="text-gray-700">Skripsi Arip &copy; 2023</p>
-        </footer>
+        <!-- footer -->
+        <?php
+            include("components/footer.php");
+        ?>
 </body>
 
 </html>
