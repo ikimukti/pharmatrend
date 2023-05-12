@@ -21,4 +21,10 @@ Skripsi Arip is a web application that is used to help the process of making a t
 5. `npm install -D tailwindcss@latest postcss@latest autoprefixer@latest` to install tailwindcss
 6. `npx tailwindcss init -p` to create tailwind.config.js
 7. `npx tailwindcss build src/styles.css -o public/styles.css` to create public/styles.css
-8. `npm run build` to create public/bundle.js
+8. `npm run build` to create public/bundle.js or `npm run dev` to create public/bundle.js and watch for changes
+9. Open the project in Visual Studio Code with the command `code .`
+10. Run XAMPP and start Apache and MySQL
+11. Open the browser and go to `http://localhost/phpmyadmin/`
+12. Create a database with the name `skripsi-arip`
+13. import the database file `skripsi-arip.sql` in the database folder
+14. Open web browser icognito mode and go to `http://localhost/skripsi-arip/public/`
