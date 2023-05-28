@@ -143,8 +143,10 @@ if(isset($_GET  ["search"])){
                                                 <!-- jika total bulan kurang dari bulan yang ada dari 3 tahun lalu maka tampilkan tombol add sales item -->
                                                 <?php
                                                     if($item["total_month"] < 36){
+                                                        // Tahun sekarang
+                                                        $year = date("Y");
                                                 ?>
-                                                <a href="sales_add_item.php?id=<?php echo $item["id"]; ?>"
+                                                <a href="add_sales_per_item.php?id=<?php echo $item["id"]; ?>&year=<?php echo $year; ?>"
                                                     class="bg-green-400 text-white px-4 py-2 rounded hover:bg-green-600 mr-2">
                                                     Add Sales
                                                 </a>
