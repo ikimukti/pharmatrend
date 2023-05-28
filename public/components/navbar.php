@@ -1,51 +1,67 @@
 <nav class="flex items-center justify-between flex-wrap w-94% mx-auto py-1">
-            <div class="">
-                <h1 class="text-2xl font-bold px-4 py-2">
-                    SKRIPSI
-                    <span class="bg-gradient-to-br from-red-500 to-teal-400 bg-clip-text text-transparent">ARIP</span>
-                </h1>
-            </div>
-            <div class="">
-                <ul class="flex items-center gap-4">
-                    <?php
-                        if(!isset($_SESSION["id"])){
-                    ?>
-                    <li class="px-4 py-2">
-                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950">Home</a>
+    <div class="">
+        <a class="text-2xl font-bold px-4 py-2 flex items-center cursor-pointer" href="index.php">
+            SKRIPSI
+            <span class="bg-gradient-to-br from-red-500 to-teal-400 bg-clip-text text-transparent">ARIP</span>
+        </a>
+    </div>
+    <div class="">
+        <!-- account -->
+        <div>
+            <button type="button"
+                class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
+                id="accountMenuButton" aria-expanded="false" aria-haspopup="true" onclick="toogleAccountMenu()">
+                Account
+                <i class="fas fa-chevron-down ml-4 mt-1"></i>
+            </button>
+        </div>
+        <!-- account menu dropdown absolute hidden -->
+        <div id="accountMenu"
+            class="absolute right-2 mt-2 w-auto h-auto min-w-[300px] rounded-md shadow-md bg-white ring-1 ring-black ring-opacity-5 py-4 z-10 px-4 hidden">
+            <!-- account profile -->
+            <div class="flex flex-col items-center justify-center">
+                <div class="flex flex-row justify-between space-x-2">
+                    <div>
+                        <img class="w-16 h-16 rounded-full object-cover border-2 border-gray-300" src="img/bg.jpeg"
+                            alt="profile">
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold mt-2">
+                            <?php echo $_SESSION["fullname"]; ?>
+                        </h1>
+                        <h2 class="text-sm text-gray-500">
+                            <i class="fas fa-circle text-green-500 mr-2"></i><?php echo $_SESSION["status"]; ?>
+                        </h2>
+                    </div>
+                </div>
+                <!-- account menu -->
+                <ul class="space-y-2 w-full mt-4">
+                    <li
+                        class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
+                        <div>
+                            <i class="fas fa-user-circle text-fuchsia-500 mr-2"></i>
+                            <a href="profile.php" class="text-gray-500 hover:text-gray-900">Profile</a>
+                        </div>
                     </li>
-                    <?php
-                        }
-                    ?>
-                    
-                    <li class="px-4 py-2">
-                        <a href="about.php" class="text-gray-700 hover:text-gray-950">About</a>
+                    <hr class="border-gray-200">
+                    <li
+                        class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
+                        <div>
+                            <i class="fas fa-cog text-fuchsia-500 mr-2"></i>
+                            <a href="setting.php" class="text-gray-500 hover:text-gray-900">Setting</a>
+                        </div>
                     </li>
-                    <li class="px-4 py-2">
-                        <a href="contact.php" class="text-gray-700 hover:text-gray-950">Contact</a>
-                    </li>
-                    <li class="px-4 py-2">
-                        <a href="blog.php" class="text-gray-700 hover:text-gray-950">Blog</a>
+                    <hr class="border-gray-200">
+                    <li
+                        class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
+                        <div>
+                            <i class="fas fa-sign-out-alt text-fuchsia-500 mr-2"></i>
+                            <a href="signout.php" class="text-gray-500 hover:text-gray-900">Sign Out</a>
+                        </div>
                     </li>
                 </ul>
             </div>
-            <div class="">
-                <!-- <button class="bg-blue-400 text-white px-4 py-2 rounded mx-4 my-2 hover:bg-blue-600">
-                    Login
-                </button> -->
-                <!-- account -->
-                <div>
-                    <button type="button"
-                        class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
-                        id="options-menu" aria-haspopup="true" aria-expanded="true">
-                        Account
-                        <!-- Heroicon name: solid/chevron-down -->
-                        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                            fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd"
-                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </nav>
+        </div>
+    </div>
+    </div>
+</nav>

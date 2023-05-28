@@ -32,6 +32,7 @@ if(isset($_GET  ["search"])){
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -42,6 +43,9 @@ if(isset($_GET  ["search"])){
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="font-inter">
@@ -56,7 +60,7 @@ if(isset($_GET  ["search"])){
             <?php
                 include("components/sidebar.php");
             ?>
-            <div class="w-10/12 h-screen p-2">
+            <div class="w-10/12 h-[calc(100vh-3.5rem)] p-2">
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
@@ -66,7 +70,8 @@ if(isset($_GET  ["search"])){
                         <a href="items.php" class="text-gray-700 hover:text-gray-950">Items</a>
                         <span class="text-gray-700">/</span>
                         <!-- page -->
-                        <a href="items.php?page=<?php echo $page; ?>" class="text-gray-700 hover:text-gray-950"><?php echo $page; ?></a>
+                        <a href="items.php?page=<?php echo $page; ?>"
+                            class="text-gray-700 hover:text-gray-950"><?php echo $page; ?></a>
                     </div>
                     <hr>
                     <!-- content -->
@@ -76,10 +81,10 @@ if(isset($_GET  ["search"])){
                             <div class="flex flex-row items-center justify-between">
                                 <div class="flex flex-row items-center gap-2">
                                     <h1 class="text-2xl font-bold">Items</h1>
-                                    
+
                                 </div>
                                 <div class="flex flex-row items-center gap-2">
-                                    <a href="add_item.php" 
+                                    <a href="add_item.php"
                                         class="bg-blue-400 text-white px-4 py-2 rounded mx-4 my-2 hover:bg-blue-600">
                                         Add Item
                                     </a>
@@ -139,15 +144,19 @@ if(isset($_GET  ["search"])){
                                 </table>
                                 <!-- div space between left total and right pagination -->
                                 <div class="flex flex-row items-center justify-between mt-2">
+                                    <?php
+                                        $sql = "SELECT * FROM items";
+                                        $result = mysqli_query($conn, $sql);
+                                        $total_data = mysqli_num_rows($result);
+                                        $total_page = ceil($total_data / $limit);
+                                    ?>
                                     <!-- total data -->
-                                    <h2 class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">Total: 10</h2>
+                                    <h2 class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">Total:
+                                        <?php echo $total_data; ?> Items</h2>
                                     <!-- pagination with number -->
                                     <div class="flex flex-row items-center justify-end gap-2 mt-2 text-sm">
                                         <?php
-                                            $sql = "SELECT * FROM items";
-                                            $result = mysqli_query($conn, $sql);
-                                            $total_data = mysqli_num_rows($result);
-                                            $total_page = ceil($total_data / $limit);
+                                            
                                             if($page > 1){
                                         ?>
                                         <a href="items.php?page=<?php echo $first_page; ?>"

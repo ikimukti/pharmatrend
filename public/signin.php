@@ -19,6 +19,9 @@ if(isset($_SESSION["id"])){
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="font-inter bg-gradient-to-tr from-blue-200 via-teal-200 to-yellow-200 h-screen">
@@ -76,12 +79,12 @@ if(isset($_SESSION["id"])){
                         <div class="flex flex-col items-end justify-end w-full">
                             <a href="#" class="text-blue-400 mt-4 mb-2 text-sm">Forgot Password?</a>
                             <div class="flex flex-row items-end justify-center w-full">
-                                <a href="signup.html" class="text-gray-700 mt-4 text-xs mb-6 px-4 py-3">Don't have an
+                                <a href="signup.php" class="text-gray-700 mt-4 text-xs mb-6 px-4 py-3">Don't have an
                                     account?
                                     Sign Up</a>
                                 <input type="submit" value="Sign In" name="submit"
                                     class="bg-blue-400 text-white px-4 py-3 rounded mb-6 hover:bg-blue-600">
-                                
+
                             </div>
                         </div>
                     </form>

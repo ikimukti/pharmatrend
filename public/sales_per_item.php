@@ -33,6 +33,7 @@ if(isset($_GET  ["search"])){
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -43,6 +44,9 @@ if(isset($_GET  ["search"])){
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="font-inter">
@@ -57,7 +61,7 @@ if(isset($_GET  ["search"])){
             <?php
                 include("components/sidebar.php");
             ?>
-            <div class="w-10/12 h-screen p-2">
+            <div class="w-10/12 h-[calc(100vh-3.5rem)] p-2">
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
@@ -77,7 +81,7 @@ if(isset($_GET  ["search"])){
                             <div class="flex flex-row items-center justify-between">
                                 <div class="flex flex-row items-center gap-2">
                                     <h1 class="text-2xl font-bold">Sales Per Item</h1>
-                                    
+
                                 </div>
                                 <div class="flex flex-row items-center gap-2">
                                     <!-- <a href="sales_add_item.php"
@@ -118,9 +122,13 @@ if(isset($_GET  ["search"])){
                                             <td class="px-2 py-2"><?php echo $item["name"]; ?></td>
                                             <td class="px-2 py-2">Rp. <?php echo number_format($item["price"]); ?></td>
                                             <!-- jika total sales kosong maka tampilkan 0 -->
-                                            <td class="px-2 py-2"><?php echo $item["total_sales"] == null ? 0 : $item["total_sales"]; ?> Pcs</td>
+                                            <td class="px-2 py-2">
+                                                <?php echo $item["total_sales"] == null ? 0 : $item["total_sales"]; ?>
+                                                Pcs</td>
                                             <!-- jika total month kosong maka tampilkan 0 -->
-                                            <td class="px-2 py-2"><?php echo $item["total_month"] == null ? 0 : $item["total_month"]; ?> Month</td>
+                                            <td class="px-2 py-2">
+                                                <?php echo $item["total_month"] == null ? 0 : $item["total_month"]; ?>
+                                                Month</td>
                                             <!-- <td class="px-2 py-2"></td> -->
                                             <td class="px-2 py-2">
                                                 <!-- <a href="edit_item.php?id=<?php echo $item["id"]; ?>"

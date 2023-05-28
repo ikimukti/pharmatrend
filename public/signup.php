@@ -20,6 +20,7 @@ if(isset($_SESSION["id"])){
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
 </head>
+
 <body class="font-inter bg-gradient-to-tr from-blue-200 via-teal-200 to-yellow-200 h-screen">
     <header class="bg-white fixed top-0 w-full">
         <?php
@@ -110,7 +111,7 @@ if(isset($_SESSION["id"])){
                         </div>
                         <div class="flex flex-col items-end justify-end w-full">
                             <div class="flex flex-row items-end justify-center w-full mt-4">
-                                <a href="signin.html" class="text-gray-700 mt-4 text-xs mb-6 px-4 py-3"> Already
+                                <a href="signin.php" class="text-gray-700 mt-4 text-xs mb-6 px-4 py-3"> Already
                                     have an account? Sign In</a>
                                 <input type="submit" name="sumbit"
                                     class="bg-blue-400 text-white px-4 py-3 rounded mb-6 hover:bg-blue-600"

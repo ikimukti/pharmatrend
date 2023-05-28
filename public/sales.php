@@ -25,6 +25,7 @@ $no = $start + 1;
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -35,6 +36,9 @@ $no = $start + 1;
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="font-inter">
@@ -49,7 +53,7 @@ $no = $start + 1;
             <?php
                 include("components/sidebar.php");
             ?>
-            <div class="w-10/12 h-screen p-2">
+            <div class="w-10/12 h-[calc(100vh-3.5rem)] p-2">
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
@@ -58,7 +62,8 @@ $no = $start + 1;
                         <span class="text-gray-700">/</span>
                         <a href="sales.php" class="text-gray-700 hover:text-gray-950">Sales</a>
                         <span class="text-gray-700">/</span>
-                        <a href="sales.php?page<?php echo $page; ?>" class="text-gray-700 hover:text-gray-950"><?php echo $page; ?></a>
+                        <a href="sales.php?page<?php echo $page; ?>"
+                            class="text-gray-700 hover:text-gray-950"><?php echo $page; ?></a>
                     </div>
                     <hr>
                     <!-- content -->
@@ -91,7 +96,7 @@ $no = $start + 1;
                                             <th class="px-2 py-2">No</th>
                                             <th class="px-2 py-2">Code</th>
                                             <th class="px-2 py-2">Item</th>
-                                            <th class="px-2 py-2">Sold</th> 
+                                            <th class="px-2 py-2">Sold</th>
                                             <th class="px-2 py-2">Month</th>
                                             <th class="px-2 py-2">Year</th>
                                             <th class="px-2 py-2">Action</th>

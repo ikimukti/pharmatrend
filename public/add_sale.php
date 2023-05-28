@@ -8,6 +8,7 @@ if(!isset($_SESSION["id"])){
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -18,6 +19,9 @@ if(!isset($_SESSION["id"])){
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="font-inter">
@@ -33,7 +37,7 @@ if(!isset($_SESSION["id"])){
             <?php
                 include("components/sidebar.php");
             ?>
-            <div class="w-10/12 h-screen p-2">
+            <div class="w-10/12 h-[calc(100vh-3.5rem)] p-2">
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
@@ -107,10 +111,13 @@ if(!isset($_SESSION["id"])){
                                 ?>
                                 <form action="add_sale.php" method="post">
                                     <!-- name auto_complete -->
-                                    <div class="flex flex-col gap-2 mt-2 relative" onclick="event.stopImmediatePropagation()">
+                                    <div class="flex flex-col gap-2 mt-2 relative"
+                                        onclick="event.stopImmediatePropagation()">
                                         <label for="name" class="text-sm">Name</label>
-                                        <input type="text" name="name" onkeyup="onKeyUpName(event)" id="name" class="border-2 border-gray-200 rounded-md p-2">
-                                        <div class="w-full max-h-60 bg-gray-100 rounded-md p-2 hidden overflow-y-auto" id="dropdown_name">
+                                        <input type="text" name="name" onkeyup="onKeyUpName(event)" id="name"
+                                            class="border-2 border-gray-200 rounded-md p-2">
+                                        <div class="w-full max-h-60 bg-gray-100 rounded-md p-2 hidden overflow-y-auto"
+                                            id="dropdown_name">
                                         </div>
                                     </div>
                                     <!-- code -->
@@ -129,19 +136,23 @@ if(!isset($_SESSION["id"])){
                                     ?>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="code" class="text-sm">Code</label>
-                                        <input type="text" name="code" id="code" class="border-2 border-gray-200 bg-gray-100 rounded-md p-2" value="<?php echo $code; ?>" readonly>
+                                        <input type="text" name="code" id="code"
+                                            class="border-2 border-gray-200 bg-gray-100 rounded-md p-2"
+                                            value="<?php echo $code; ?>" readonly>
                                     </div>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="sold" class="text-sm">Sold</label>
                                         <div class="flex flex-row items-center gap-2">
-                                            <input type="number" name="sold" id="sold" class="border-2 border-gray-200 rounded-md p-2 w-full">
+                                            <input type="number" name="sold" id="sold"
+                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
                                             <h1 class="text-sm">Pack</h1>
                                         </div>
                                     </div>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="year" class="text-sm">Year</label>
                                         <div class="flex flex-row items-center gap-2">
-                                            <select name="year" id="year" class="border-2 border-gray-200 rounded-md p-2 w-full">
+                                            <select name="year" id="year"
+                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
                                                 <?php
                                                     $year = date("Y");
                                                     for($i = 0; $i < 3; $i++){
@@ -157,7 +168,8 @@ if(!isset($_SESSION["id"])){
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="month" class="text-sm">Month</label>
                                         <div class="flex flex-row items-center gap-2">
-                                            <select name="month" id="month" class="border-2 border-gray-200 rounded-md p-2 w-full">
+                                            <select name="month" id="month"
+                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
                                                 <option value="1">January</option>
                                                 <option value="2">February</option>
                                                 <option value="3">March</option>
@@ -176,8 +188,11 @@ if(!isset($_SESSION["id"])){
                                     </div>
                                     <!-- input button save and cancel -->
                                     <div class="flex flex-row items-center justify-end gap-2 mt-4">
-                                        <input type="submit" class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer" name="submit" value="Save">
-                                        <a href="items.php" class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
+                                        <input type="submit"
+                                            class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                                            name="submit" value="Save">
+                                        <a href="items.php"
+                                            class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
                                     </div>
                                 </form>
                             </div>
@@ -198,61 +213,62 @@ if(!isset($_SESSION["id"])){
             $nameData = array();
         ?>
         <script>
-            let nameData = [
-                // php while nameData > {name: "name", code: "id"}
-                <?php
+        let nameData = [
+            // php while nameData > {name: "name", code: "id"}
+            <?php
                     while($row = mysqli_fetch_array($query)){
-                ?>
-                ,{
-                    name: "<?php echo $row['name']?>",
-                    id: "<?php echo $row['id']?>"
-                }
-                <?php
-                    }?>
-            ]
-            function onKeyUpName(e) {
-                let keyword = e.target.value;
-                let dropdownEl = document.querySelector("#dropdown_name");
-                dropdownEl.classList.remove("hidden");
-                let filteredName = nameData.filter((d) => d.name.toLowerCase().includes(keyword.toLowerCase()));
-                renderOptions(filteredName);          
+                ?>, {
+                name: "<?php echo $row['name']?>",
+                id: "<?php echo $row['id']?>"
             }
+            <?php
+                    }?>
+        ]
 
-            document.addEventListener("DOMContentLoaded", () => {
-                renderOptions(nameData);
-            })
+        function onKeyUpName(e) {
+            let keyword = e.target.value;
+            let dropdownEl = document.querySelector("#dropdown_name");
+            dropdownEl.classList.remove("hidden");
+            let filteredName = nameData.filter((d) => d.name.toLowerCase().includes(keyword.toLowerCase()));
+            renderOptions(filteredName);
+        }
 
-            function renderOptions(options){
-                let dropdownEl = document.querySelector("#dropdown_name");
-                let newHtml = ``;
-                options.forEach((d) => {
-                    newHtml += `<div class="px-4 py-3 bg-white rounded-md shadow-md border-b mb-2 border-gray-100 text-sm hover:bg-gray-100 cursor-pointer" onclick="selectOptionName('${d.name}')">
+        document.addEventListener("DOMContentLoaded", () => {
+            renderOptions(nameData);
+        })
+
+        function renderOptions(options) {
+            let dropdownEl = document.querySelector("#dropdown_name");
+            let newHtml = ``;
+            options.forEach((d) => {
+                newHtml += `<div class="px-4 py-3 bg-white rounded-md shadow-md border-b mb-2 border-gray-100 text-sm hover:bg-gray-100 cursor-pointer" onclick="selectOptionName('${d.name}')">
                     ${d.name}
                     </div>`;
-                });
-                // if options is empty
-                if(options.length == 0){
-                    newHtml = `<div class="px-4 py-3 bg-white rounded-md shadow-md border-b mb-2 border-gray-100 text-sm hover:bg-gray-100 cursor-pointer">
+            });
+            // if options is empty
+            if (options.length == 0) {
+                newHtml = `<div class="px-4 py-3 bg-white rounded-md shadow-md border-b mb-2 border-gray-100 text-sm hover:bg-gray-100 cursor-pointer">
                     No data found
                     </div>`;
-                }
-                dropdownEl.innerHTML = newHtml;
             }
+            dropdownEl.innerHTML = newHtml;
+        }
 
-            function selectOptionName(e) {
-                let inputEl = document.querySelector("#name");
-                inputEl.value = e;
-                hideDropdown();
+        function selectOptionName(e) {
+            let inputEl = document.querySelector("#name");
+            inputEl.value = e;
+            hideDropdown();
 
-            }
+        }
 
-            document.addEventListener("click", function() {
-                hideDropdown();
-            })
-            function hideDropdown(e) {
-                let dropdownEl = document.querySelector("#dropdown_name");
-                dropdownEl.classList.add("hidden");
-            }
+        document.addEventListener("click", function() {
+            hideDropdown();
+        })
+
+        function hideDropdown(e) {
+            let dropdownEl = document.querySelector("#dropdown_name");
+            dropdownEl.classList.add("hidden");
+        }
         </script>
 </body>
 

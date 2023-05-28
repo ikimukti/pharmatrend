@@ -25,6 +25,7 @@ if(mysqli_num_rows($query) > 0){
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -35,6 +36,9 @@ if(mysqli_num_rows($query) > 0){
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="font-inter">
@@ -50,7 +54,7 @@ if(mysqli_num_rows($query) > 0){
             <?php
                 require("components/sidebar.php");
             ?>
-            <div class="w-10/12 h-screen p-2">
+            <div class="w-10/12 h-[calc(100vh-3.5rem)] p-2">
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
@@ -59,7 +63,8 @@ if(mysqli_num_rows($query) > 0){
                         <span class="text-gray-700">/</span>
                         <a href="items.php" class="text-gray-700 hover:text-gray-950">Items</a>
                         <span class="text-gray-700">/</span>
-                        <a href="edit_item.php?id=<?php echo $id; ?>" class="text-gray-700 hover:text-gray-950">Edit Item</a>
+                        <a href="edit_item.php?id=<?php echo $id; ?>" class="text-gray-700 hover:text-gray-950">Edit
+                            Item</a>
                     </div>
                     <hr>
                     <!-- content -->
@@ -117,11 +122,13 @@ if(mysqli_num_rows($query) > 0){
                                         }
                                     }
                                 ?>
-                                <form action="edit_item.php?id=<?php echo $id; ?>" method="POST" class="flex flex-col gap-4">
+                                <form action="edit_item.php?id=<?php echo $id; ?>" method="POST"
+                                    class="flex flex-col gap-4">
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="name" class="text-sm">Name</label>
-                                        <input type="text" name="name" id="name" class="border-2 border-gray-200 rounded-md p-2"
-                                            placeholder="Item name" value="<?php echo isset($_POST["name"]) ? $_POST["name"] : $name_old; ?>">
+                                        <input type="text" name="name" id="name"
+                                            class="border-2 border-gray-200 rounded-md p-2" placeholder="Item name"
+                                            value="<?php echo isset($_POST["name"]) ? $_POST["name"] : $name_old; ?>">
                                     </div>
                                     <!-- code -->
                                     <?php
@@ -130,13 +137,19 @@ if(mysqli_num_rows($query) > 0){
                                     ?>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="code" class="text-sm">Code</label>
-                                        <input type="text" name="code" id="code" class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $code; ?>" readonly placeholder="Item code" value="<?php echo isset($_POST["code"]) ? $_POST["code"] : $code_old; ?>">
+                                        <input type="text" name="code" id="code"
+                                            class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $code; ?>"
+                                            readonly placeholder="Item code"
+                                            value="<?php echo isset($_POST["code"]) ? $_POST["code"] : $code_old; ?>">
                                     </div>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="price" class="text-sm">Price</label>
                                         <div class="flex flex-row items-center gap-2">
                                             <h1 class="text-sm">Rp.</h1>
-                                            <input type="number" name="price" id="price" class="border-2 border-gray-200 rounded-md p-2 w-full" placeholder="Item price" value="<?php echo isset($_POST["price"]) ? $_POST["price"] : $price_old; ?>">
+                                            <input type="number" name="price" id="price"
+                                                class="border-2 border-gray-200 rounded-md p-2 w-full"
+                                                placeholder="Item price"
+                                                value="<?php echo isset($_POST["price"]) ? $_POST["price"] : $price_old; ?>">
                                         </div>
                                     </div>
                                     <!-- <div class="flex flex-col gap-2 mt-2">
@@ -145,8 +158,11 @@ if(mysqli_num_rows($query) > 0){
                                     </div> -->
                                     <!-- input button save and cancel -->
                                     <div class="flex flex-row items-center justify-end gap-2 mt-4">
-                                        <input type="submit" class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md" name="submit" value="Save">
-                                        <a href="items.php" class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
+                                        <input type="submit"
+                                            class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+                                            name="submit" value="Save">
+                                        <a href="items.php"
+                                            class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
                                     </div>
                                 </form>
                             </div>

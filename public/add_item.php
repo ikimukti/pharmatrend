@@ -9,6 +9,7 @@ if(!isset($_SESSION["id"])){
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -19,6 +20,9 @@ if(!isset($_SESSION["id"])){
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body class="font-inter">
@@ -34,7 +38,7 @@ if(!isset($_SESSION["id"])){
             <?php
                 require("components/sidebar.php");
             ?>
-            <div class="w-10/12 h-screen p-2">
+            <div class="w-10/12 h-[calc(100vh-3.5rem)] p-2">
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
@@ -110,7 +114,8 @@ if(!isset($_SESSION["id"])){
                                 <form action="add_item.php" method="post">
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="name" class="text-sm">Name</label>
-                                        <input type="text" name="name" id="name" class="border-2 border-gray-200 rounded-md p-2">
+                                        <input type="text" name="name" id="name"
+                                            class="border-2 border-gray-200 rounded-md p-2">
                                     </div>
                                     <!-- code -->
                                     <?php
@@ -119,13 +124,16 @@ if(!isset($_SESSION["id"])){
                                     ?>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="code" class="text-sm">Code</label>
-                                        <input type="text" name="code" id="code" class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $code; ?>" readonly>
+                                        <input type="text" name="code" id="code"
+                                            class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $code; ?>"
+                                            readonly>
                                     </div>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="price" class="text-sm">Price</label>
                                         <div class="flex flex-row items-center gap-2">
                                             <h1 class="text-sm">Rp.</h1>
-                                            <input type="number" name="price" id="price" class="border-2 border-gray-200 rounded-md p-2 w-full">
+                                            <input type="number" name="price" id="price"
+                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
                                         </div>
                                     </div>
                                     <!-- <div class="flex flex-col gap-2 mt-2">
@@ -134,8 +142,11 @@ if(!isset($_SESSION["id"])){
                                     </div> -->
                                     <!-- input button save and cancel -->
                                     <div class="flex flex-row items-center justify-end gap-2 mt-4">
-                                        <input type="submit" class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md" name="submit" value="Save">
-                                        <a href="items.php" class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
+                                        <input type="submit"
+                                            class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+                                            name="submit" value="Save">
+                                        <a href="items.php"
+                                            class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
                                     </div>
                                 </form>
                             </div>
