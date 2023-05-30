@@ -10,9 +10,13 @@ if(!isset($_SESSION["id"])){
     <div class="flex flex-col items-center justify-center mt-4  p-2">
         <h1 class="text-lg"><?php echo $_SESSION["fullname"]; ?></h1>
         <div class="flex flex-row items-center justify-center gap-2">
-            <h2 class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full"><?php echo $_SESSION["role"]; ?></h2>
-            <h2 class="text-sm text-gray-500 bg-green-200 px-2 py-1 rounded-full"><?php echo $_SESSION["status"]; ?>
-            </h2>
+            <span class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                <i class="fas fa-user"></i>
+                <?php echo $_SESSION["role"]; ?></span>
+            <span class="text-sm text-gray-500 bg-green-200 px-2 py-1 rounded-full">
+                <i class="fas fa-circle text-green-500 mr-2"></i>
+                <?php echo $_SESSION["status"]; ?>
+            </span>
         </div>
     </div>
     <hr class="my-4">
@@ -31,7 +35,7 @@ if(!isset($_SESSION["id"])){
                 class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                 <div class="flex flex-row items-center">
                     <i class="fa-solid fa-user text-fuchsia-500 text-lg mr-2"></i>
-                    <p class="text-gray-700 hover:text-gray-900">Profile</p>
+                    <a href="profile.php" class="text-gray-700 hover:text-gray-900">Profile</a>
                 </div>
             </li>
             <?php
@@ -140,13 +144,6 @@ if(!isset($_SESSION["id"])){
                     <div>
                         <i class="text-fuchsia-500 text-lg mr-2 fa-solid fa-bag-shopping"></i>
                         <a href="sales_per_item.php" class="text-gray-700 hover:text-gray-900">Sales Per Item</a>
-                    </div>
-                </li>
-                <li
-                    class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
-                    <div>
-                        <i class="text-fuchsia-500 text-lg mr-2 fa-solid fa-bag-shopping"></i>
-                        <a href="sales_per_user.php" class="text-gray-700 hover:text-gray-900">Sales Per User</a>
                     </div>
                 </li>
             </ul>

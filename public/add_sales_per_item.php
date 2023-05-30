@@ -5,6 +5,13 @@ if(!isset($_SESSION["id"])){
     die();
 }
 require_once("config.php");
+// jika id tidak ditemukan & year lebi dari tahun sekarang dan year lebih dari 2 tahun lalu
+$id = $_GET["id"];
+$sql = "SELECT * FROM items WHERE id = '$id'";
+if(mysqli_num_rows(mysqli_query($conn, $sql)) == 0 || $_GET["year"] > date('Y') || $_GET["year"] < date('Y') - 2){
+    header("Location: add_sales_per_item.php");
+    die();
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -42,12 +49,27 @@ require_once("config.php");
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
                     <div class="flex items-center gap-2 mb-3">
-                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950">Home</a>
+                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
                         <span class="text-gray-700">/</span>
                         <a href="sales.php" class="text-gray-700 hover:text-gray-950">Sales</a>
                         <span class="text-gray-700">/</span>
-                        <a href="add_sales_per_item.php?id=<?php echo $_GET["id"]; ?>"
+                        <a href="add_sales_per_item.php?id=<?php echo $_GET["id"]; ?>&year=<?php echo $_GET["year"]; ?>"
                             class="text-gray-700 hover:text-gray-950">Add Sales Per Item</a>
+                        <span class="text-gray-700">/</span>
+                        <a href="add_sales_per_item.php?id=<?php echo $_GET["id"]; ?>&year=<?php echo $_GET["year"]; ?>"
+                            class="text-gray-700 hover:text-gray-950">
+                            <?php echo $_GET["id"]; ?>
+                        </a>
+                        <!-- Create if year found -->
+                        <?php
+                            if(isset($_GET["year"])){
+                        ?>
+                        <span class="text-gray-700">/</span>
+                        <a href="add_sales_per_item.php?id=<?php echo $_GET["id"]; ?> &year=<?php echo $_GET["year"]; ?>"
+                            class="text-gray-700 hover:text-gray-950"><?php echo $_GET["year"]; ?></a>
+                        <?php
+                            }
+                        ?>
                     </div>
                     <hr>
                     <!-- content -->
@@ -75,6 +97,7 @@ require_once("config.php");
                                         $sql = "SELECT * FROM sales WHERE id_item = '$id'";
                                         $resultSales = mysqli_query($conn, $sql);
                                         // print_r($resultSales);
+                                        $monthSalesNotExists = array();
                                         // Loop untuk tiga tahun ke belakang
                                         for ($i = 0; $i < 3; $i++) {
                                             $year = $currentYear - $i;
@@ -102,7 +125,9 @@ require_once("config.php");
                                                     // Cek apakah bulan $month dan tahun $year sudah ada di database
                                                     $found = false;
                                                     $checkMark = '';
-                                                    foreach ($resultSales as $row) {
+                                                    // if $resultSales is not empty
+                                                    if (mysqli_num_rows($resultSales) > 0) {
+                                                        foreach ($resultSales as $row) {
                                                         if ($row['month'] == $month && $row['year'] == $year) {
                                                             $found = true;
                                                             $checkMark = '<i class="fas fa-check text-green-500"></i>';
@@ -112,10 +137,19 @@ require_once("config.php");
                                                         // Jika tidak ada, maka akan ada tanda silang
                                                         else {
                                                             $checkMark = '<i class="fas fa-times text-red-500"></i>';
+                                                            
                                                         }
+                                                        // add month to array if not exists
+                                                        }
+                                                    } else {
+                                                        $checkMark = '<i class="fas fa-times text-red-500"></i>';
+                                                    }
+                                                    if ($year == $_GET["year"] && $checkMark == '<i class="fas fa-times text-red-500"></i>') {
+                                                        array_push($monthSalesNotExists, $monthName);
                                                     }
                                                     // tampilkan sampai bulan saat ini
                                                     if ($year == $currentYear && $month > $currentMonth) {
+                                                        $checkMark = '<i class="fas fa-times text-red-500"></i>';
                                                         echo $checkMark . ' Soon';
                                                         break;
                                                     }
@@ -124,9 +158,9 @@ require_once("config.php");
                                                 ?>
                                             </p>
                                         </div>
-                                        <!-- button show if salesMonth != 0 -->
+                                        <!-- button show -->
                                         <?php
-                                            if($salesMonth != 0){
+                                            if($year != $_GET["year"] ||  $monthSalesNotExists != null){
                                         ?>
                                         <div class="ml-3 justify-self-end mt-4">
                                             <a href="add_sales_per_item.php?id=<?php echo $_GET["id"]; ?>&year=<?php echo $year; ?>"
@@ -149,60 +183,77 @@ require_once("config.php");
                                         $id_user = $_SESSION["id"];
                                         $name_item = $_POST["name"];
                                         $code = $_POST["code"];
-                                        $sold = $_POST["sold"];
-                                        $month = $_POST["month"];
-                                        $year = $_POST["year"];
+                                        // Create month name list 1-12
                                         $created_at = date("Y-m-d H:i:s");
                                         $updated_at = date("Y-m-d H:i:s");
-                                        if($name_item == "" || $code == "" || $sold == "" || $month == "" || $year == ""){
+                                        if($name_item == "" || $code == "" || $month == "" || $year == ""){
                                             echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Please fill all the form</div>";
                                         }
-                                        // check item exist
-                                        
-                                        $sql = "SELECT * FROM items WHERE name = '$name_item'";
-                                        $query = mysqli_query($conn, $sql);
-                                        if(mysqli_num_rows($query) > 0){
-                                            $row = mysqli_fetch_assoc($query);
-                                            $id_item = $row["id"];
-                                            // check sales exist
-                                            $sql = "SELECT * FROM sales WHERE id_item = '$id_item' AND month = '$month' AND year = '$year'";
-                                            $query = mysqli_query($conn, $sql);
-                                            if(mysqli_num_rows($query) > 0){
-                                                echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Sales already exist</div>";
-                                            }else{
-                                                // insert sales
-                                                $sql = "INSERT INTO sales (id_user,code, id_item, sold, month, year, created_at, updated_at) VALUES ('$id_user','$code','$id_item','$sold','$month','$year','$created_at','$updated_at')";
-                                                // save to database and check if success or not and redirect to items.php
-                                                if(mysqli_query($conn, $sql)){
-                                                    // header already sent error fix
-                                                    ob_start();
-                                                    if(!headers_sent()){
-                                                        header("Location: sales.php");
-                                                        ob_end_flush();
-                                                        die();
+                                        for($i = 1; $i <= 12; $i++){
+                                            $monthName = date('F', mktime(0, 0, 0, $i, 1));
+                                            $monthList[$i] = $monthName;
+                                            // isset sold_Month and sold_Month value != null
+                                            if(isset($_POST["sold_".$monthName]) && $_POST["sold_".$monthName] != ""){
+                                                $sold = $_POST["sold_".$monthName];
+                                                $month = $i;
+                                                $year = $_POST["year"];
+                                                // check item exist
+                                                $sql = "SELECT * FROM items WHERE name = '$name_item'";
+                                                $query = mysqli_query($conn, $sql);
+                                                if(mysqli_num_rows($query) > 0){
+                                                    $row = mysqli_fetch_assoc($query);
+                                                    $id_item = $row["id"];
+                                                    // check sales exist
+                                                    $sql = "SELECT * FROM sales WHERE id_item = '$id_item' AND month = '$month' AND year = '$year'";
+                                                    $query = mysqli_query($conn, $sql);
+                                                    // generate random code + check if code already exist + with prefix id_sales and date
+                                                    $sql = "SELECT * FROM items WHERE code = '$code'";
+                                                    $query = mysqli_query($conn, $sql);
+                                                    while(mysqli_num_rows($query) > 0){
+                                                        $code = "ITM".date("YmdHis");
+                                                        $sql = "SELECT * FROM items WHERE crode = '$code'";
+                                                        $query = mysqli_query($conn, $sql);
+                                                    }
+                                                    if(mysqli_num_rows($query) > 0){
+                                                        echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Sales already exist</div>";
                                                     }else{
-                                                        echo "<script>window.location.href='sales.php';</script>";
-                                                        die();
+                                                        // insert sales
+                                                        $sql = "INSERT INTO sales (id_user,code, id_item, sold, month, year, created_at, updated_at) VALUES ('$id_user','$code','$id_item','$sold','$month','$year','$created_at','$updated_at')";
+                                                        $query = mysqli_query($conn, $sql);
+                                                        if($query){
+                                                            echo "<div class='bg-green-200 text-green-700 border-2 border-green-700 rounded-md p-2'>Sales added successfully</div>";
+                                                        }else{
+                                                            echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Failed to add sales</div>";
+                                                        }
                                                     }
                                                 }else{
-                                                    echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Failed to add sales</div>";
+                                                    echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Item not found</div>";
                                                 }
                                             }
-                                        } else{
-                                            echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Item not found</div>";
                                         }
+                                        // header already sent error fix
+                                        ob_start();
+                                        if(!headers_sent()){
+                                            header("Location: add_sales_per_item.php?id=".$_GET["id"]."&year=".$year);
+                                        } else{
+                                            // buffer 2 seconds earlier to prevent header already sent error
+                                            echo "<script>setTimeout(() => { window.location.href = 'add_sales_per_item.php?id=".$_GET["id"]."&year=".$year."'; }, 2000);</script>";
+                                        }
+                                    } else{
+                                        $id = $_GET["id"];
+                                        // get item name
+                                        $sql = "SELECT * FROM items WHERE id = '$id'";
+                                        $query = mysqli_query($conn, $sql);
+                                        $row = mysqli_fetch_assoc($query);
+                                        $name_item = $row["name"];
                                     }
                                 ?>
-                                <form action="add_sale.php" method="post">
+                                <form action="add_sales_per_item.php?id=<?php echo $_GET["id"]; ?>&year=<?php echo $year; ?>" method="post">
                                     <!-- name auto_complete -->
-                                    <div class="flex flex-col gap-2 mt-2 relative"
-                                        onclick="event.stopImmediatePropagation()">
+                                    <div class="flex flex-col gap-2 mt-2 relative">
                                         <label for="name" class="text-sm">Name</label>
-                                        <input type="text" name="name" onkeyup="onKeyUpName(event)" id="name"
-                                            class="border-2 border-gray-200 rounded-md p-2">
-                                        <div class="w-full max-h-60 bg-gray-100 rounded-md p-2 hidden overflow-y-auto"
-                                            id="dropdown_name">
-                                        </div>
+                                        <input type="text" name="name" id="name"
+                                            class="border-2 border-gray-200 rounded-md p-2" required autocomplete="off" readonly value="<?php echo $name_item; ?>">
                                     </div>
                                     <!-- code -->
                                     <?php
@@ -224,60 +275,53 @@ require_once("config.php");
                                             class="border-2 border-gray-200 bg-gray-100 rounded-md p-2"
                                             value="<?php echo $code; ?>" readonly>
                                     </div>
+                                    <!-- Create input form, for sold months $monthSalesNotExists -->
+                                    <?php
+                                        // if monthSalesNotExists not empty
+                                        if(!empty($monthSalesNotExists)){
+                                            foreach($monthSalesNotExists as $monthNotExist){
+                                    ?>
                                     <div class="flex flex-col gap-2 mt-2">
-                                        <label for="sold" class="text-sm">Sold</label>
+                                        <!-- label month and get years -->
+                                        <label for="sold" class="text-sm">Sold <?php echo $monthNotExist; echo " ".$_GET["year"]; ?></label>
                                         <div class="flex flex-row items-center gap-2">
-                                            <input type="number" name="sold" id="sold"
+                                            <input type="number" name="sold_<?php echo $monthNotExist; ?>" id="sold"
                                                 class="border-2 border-gray-200 rounded-md p-2 w-full">
                                             <h1 class="text-sm">Pack</h1>
                                         </div>
                                     </div>
+                                    <?php
+                                            }
+                                        }
+                                    ?>
+                                    <!-- year -->
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="year" class="text-sm">Year</label>
-                                        <div class="flex flex-row items-center gap-2">
-                                            <select name="year" id="year"
-                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
-                                                <?php
-                                                    $year = date("Y");
-                                                    for($i = 0; $i < 3; $i++){
-                                                        echo "<option value='$year'>$year</option>";
-                                                        $year--;
-                                                    }
-                                                    ?>
-                                            </select>
-                                            <h1 class="text-sm">Year</h1>
-                                        </div>
-                                    </div>
-                                    <!-- month -->
-                                    <div class="flex flex-col gap-2 mt-2">
-                                        <label for="month" class="text-sm">Month</label>
-                                        <div class="flex flex-row items-center gap-2">
-                                            <select name="month" id="month"
-                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
-                                                <option value="1">January</option>
-                                                <option value="2">February</option>
-                                                <option value="3">March</option>
-                                                <option value="4">April</option>
-                                                <option value="5">Mei</option>
-                                                <option value="6">June</option>
-                                                <option value="7">July</option>
-                                                <option value="8">August</option>
-                                                <option value="9">Septemper</option>
-                                                <option value="10">October</option>
-                                                <option value="11">November</option>
-                                                <option value="12">Desember</option>
-                                            </select>
-                                            <h1 class="text-sm">Month</h1>
-                                        </div>
+                                        <input type="number" name="year" id="year"
+                                            class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $_GET["year"]; ?>" readonly>
                                     </div>
                                     <!-- input button save and cancel -->
+                                    <?php
+                                        // show if if monthSalesNotExists not empty
+                                        if(!empty($monthSalesNotExists)){
+                                    ?>
                                     <div class="flex flex-row items-center justify-end gap-2 mt-4">
                                         <input type="submit"
                                             class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer"
                                             name="submit" value="Save">
-                                        <a href="items.php"
+                                            <a href="add_sales_per_item.php?id=<?php echo $id; ?>&year=<?php echo $_GET["year"]; ?>"
                                             class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
                                     </div>
+                                    <?php
+                                    } else{
+                                        // berikan teks penjelasan bahwa items sales sudah dimasukkan semua
+                                    ?>
+                                    <div class="flex flex-col gap-2 mt-2">
+                                        <h1 class="text-sm">All sales for <?php echo $_GET["year"]; ?> has been added</h1>
+                                    </div>
+                                    <?php
+                                    }
+                                    ?>
                                 </form>
                             </div>
                         </div>

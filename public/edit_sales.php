@@ -5,6 +5,7 @@ if(!isset($_SESSION["id"])){
     
     die();
 }
+require_once("config.php");
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -46,7 +47,7 @@ if(!isset($_SESSION["id"])){
                         <span class="text-gray-700">/</span>
                         <a href="sales.php" class="text-gray-700 hover:text-gray-950">Sales</a>
                         <span class="text-gray-700">/</span>
-                        <a href="add_sales.php" class="text-gray-700 hover:text-gray-950">Add Sales</a>
+                        <a href="edit_sales.php?id=<?php echo $_GET["id"]; ?>" class="text-gray-700 hover:text-gray-950">Edit Sales</a>
                     </div>
                     <hr>
                     <!-- content -->
@@ -55,7 +56,7 @@ if(!isset($_SESSION["id"])){
                             <!-- flex row -->
                             <div class="flex flex-row items-center justify-between">
                                 <div class="flex flex-row items-center gap-2">
-                                    <h1 class="text-2xl font-bold">Add Sales</h1>
+                                    <h1 class="text-2xl font-bold">Edit Sales</h1>
                                 </div>
                             </div>
                             <!-- div form add item -->
@@ -74,7 +75,6 @@ if(!isset($_SESSION["id"])){
                                             echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Please fill all the form</div>";
                                         }
                                         // check item exist
-                                        require_once("config.php");
                                         $sql = "SELECT * FROM items WHERE name = '$name_item'";
                                         $query = mysqli_query($conn, $sql);
                                         if(mysqli_num_rows($query) > 0){
@@ -84,56 +84,44 @@ if(!isset($_SESSION["id"])){
                                             $sql = "SELECT * FROM sales WHERE id_item = '$id_item' AND month = '$month' AND year = '$year'";
                                             $query = mysqli_query($conn, $sql);
                                             if(mysqli_num_rows($query) > 0){
-                                                echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Sales already exist</div>";
+                                                // update sales
+                                                $sql = "UPDATE sales SET sold = '$sold', updated_at = '$updated_at' WHERE id_item = '$id_item' AND month = '$month' AND year = '$year'";
+                                                $query = mysqli_query($conn, $sql); 
+                                                echo "<div class='bg-green-200 text-green-700 border-2 border-green-700 rounded-md p-2'>Sales updated successfully</div>";
                                             }else{
-                                                // insert sales
-                                                $sql = "INSERT INTO sales (id_user,code, id_item, sold, month, year, created_at, updated_at) VALUES ('$id_user','$code','$id_item','$sold','$month','$year','$created_at','$updated_at')";
-                                                // save to database and check if success or not and redirect to items.php
-                                                if(mysqli_query($conn, $sql)){
-                                                    // header already sent error fix
-                                                    ob_start();
-                                                    if(!headers_sent()){
-                                                        header("Location: sales.php");
-                                                        ob_end_flush();
-                                                        die();
-                                                    }else{
-                                                        echo "<script>window.location.href='sales.php';</script>";
-                                                        die();
-                                                    }
-                                                }else{
-                                                    echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Failed to add sales</div>";
-                                                }
+                                                echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Sales not found</div>";
                                             }
                                         } else{
                                             echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Item not found</div>";
                                         }
+                                    } else {
+                                        // Get data from database
+                                        $id = $_GET["id"];
+                                        $sql = "SELECT * FROM sales WHERE id = '$id'";
+                                        $sales = mysqli_query($conn, $sql);
+                                        if(mysqli_num_rows($sales) > 0){
+                                            $row = mysqli_fetch_assoc($sales);
+                                            $id_item = $row["id_item"];
+                                            $sold = $row["sold"];
+                                            $month = $row["month"];
+                                            $year = $row["year"];
+                                            $sql = "SELECT * FROM items WHERE id = '$id_item'";
+                                            $items = mysqli_query($conn, $sql);
+                                            if(mysqli_num_rows($items) > 0){
+                                                $row = mysqli_fetch_assoc($items);
+                                                $name_item = $row["name"];
+                                                $code = $row["code"];
+                                            }
+                                        }
                                     }
                                 ?>
-                                <form action="add_sale.php" method="post">
+                                <form action="edit_sales.php?id=<?php echo $_GET["id"]; ?>" method="POST" class="flex flex-col gap-4">
                                     <!-- name auto_complete -->
-                                    <div class="flex flex-col gap-2 mt-2 relative"
-                                        onclick="event.stopImmediatePropagation()">
+                                    <div class="flex flex-col gap-2 mt-2 relative">
                                         <label for="name" class="text-sm">Name</label>
-                                        <input type="text" name="name" onkeyup="onKeyUpName(event)" id="name"
-                                            class="border-2 border-gray-200 rounded-md p-2">
-                                        <div class="w-full max-h-60 bg-gray-100 rounded-md p-2 hidden overflow-y-auto"
-                                            id="dropdown_name">
-                                        </div>
+                                        <input type="text" name="name" id="name" autocomplete="off" value="<?php echo $name_item; ?>"
+                                             readonly class="border-2 border-gray-200 bg-gray-100 rounded-md p-2">
                                     </div>
-                                    <!-- code -->
-                                    <?php
-                                        // generate random code + check if code already exist + with prefix id_sales and date
-                                        $code = "SALE".date("YmdHis");
-                                        require_once("config.php");
-                                        $sql = "SELECT * FROM items WHERE code = '$code'";
-                                        $query = mysqli_query($conn, $sql);
-                                        while(mysqli_num_rows($query) > 0){
-                                            $code = "ITM".date("YmdHis");
-                                            $sql = "SELECT * FROM items WHERE crode = '$code'";
-                                            $query = mysqli_query($conn, $sql);
-                                        }
-
-                                    ?>
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="code" class="text-sm">Code</label>
                                         <input type="text" name="code" id="code"
@@ -143,7 +131,7 @@ if(!isset($_SESSION["id"])){
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="sold" class="text-sm">Sold</label>
                                         <div class="flex flex-row items-center gap-2">
-                                            <input type="number" name="sold" id="sold"
+                                            <input type="number" name="sold" id="sold" value="<?php echo $sold; ?>"
                                                 class="border-2 border-gray-200 rounded-md p-2 w-full">
                                             <h1 class="text-sm">Pack</h1>
                                         </div>
@@ -151,16 +139,8 @@ if(!isset($_SESSION["id"])){
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="year" class="text-sm">Year</label>
                                         <div class="flex flex-row items-center gap-2">
-                                            <select name="year" id="year"
-                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
-                                                <?php
-                                                    $year = date("Y");
-                                                    for($i = 0; $i < 3; $i++){
-                                                        echo "<option value='$year'>$year</option>";
-                                                        $year--;
-                                                    }
-                                                    ?>
-                                            </select>
+                                            <input type="number" name="year" id="year" value="<?php echo $year; ?>"
+                                                class="border-2 border-gray-200 rounded-md p-2 w-full" readonly>
                                             <h1 class="text-sm">Year</h1>
                                         </div>
                                     </div>
@@ -168,21 +148,8 @@ if(!isset($_SESSION["id"])){
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="month" class="text-sm">Month</label>
                                         <div class="flex flex-row items-center gap-2">
-                                            <select name="month" id="month"
-                                                class="border-2 border-gray-200 rounded-md p-2 w-full">
-                                                <option value="1">January</option>
-                                                <option value="2">February</option>
-                                                <option value="3">March</option>
-                                                <option value="4">April</option>
-                                                <option value="5">Mei</option>
-                                                <option value="6">June</option>
-                                                <option value="7">July</option>
-                                                <option value="8">August</option>
-                                                <option value="9">Septemper</option>
-                                                <option value="10">October</option>
-                                                <option value="11">November</option>
-                                                <option value="12">Desember</option>
-                                            </select>
+                                            <input type="number" name="month" id="month" value="<?php echo $month; ?>"
+                                                class="border-2 border-gray-200 rounded-md p-2 w-full" readonly>
                                             <h1 class="text-sm">Month</h1>
                                         </div>
                                     </div>

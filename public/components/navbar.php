@@ -11,6 +11,7 @@
             <button type="button"
                 class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
                 id="accountMenuButton" aria-expanded="false" aria-haspopup="true" onclick="toogleAccountMenu()">
+                <i class="fas fa-user-circle mr-2 mt-1"></i>
                 Account
                 <i class="fas fa-chevron-down ml-4 mt-1"></i>
             </button>

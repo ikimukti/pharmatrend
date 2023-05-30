@@ -43,7 +43,7 @@ if(!isset($_SESSION["id"])){
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
                     <div class="flex items-center gap-2 mb-3">
-                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950">Home</a>
+                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
                         <span class="text-gray-700">/</span>
                         <a href="items.php" class="text-gray-700 hover:text-gray-950">Items</a>
                         <span class="text-gray-700">/</span>
