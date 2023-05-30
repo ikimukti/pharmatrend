@@ -87,7 +87,15 @@ if(isset($_GET  ["search"])){
                                 <div class="flex flex-col gap-2">
                                     <label for="photo" class="text-gray-700">Photo <span class="text-red-500">*</span></label>
                                     <div class="flex flex-row gap-2">
-                                        <img src="img/profile/bg.jpeg" alt="photo" class="w-32 h-32 rounded-md object-cover">
+                                        <?php
+                                            // check if photo is empty
+                                            if($row["photo"] == ""){
+                                                $photo = "img/profile/profile.jpeg";
+                                            }else{
+                                                $photo = "img/profile/".$row["photo"];
+                                            }
+                                        ?>
+                                        <img src="<?php echo $photo ?>" alt="profile" class="w-32 h-32 rounded-md object-cover">
                                         <div class="flex flex-col gap-2">
                                             <label for="photo" class="text-gray-700">Change Photo <span class="text-red-500">*</span></label>
                                             <input type="file" name="photo" id="photo" class="border-2 border-gray-200 rounded-md p-2">
@@ -108,11 +116,11 @@ if(isset($_GET  ["search"])){
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <label for="phone" class="text-gray-700">Phone <span class="text-red-500">*</span></label>
-                                    <input type="text" name="phone" id="phone" class="border-2 border-gray-200 rounded-md p-2" value="">
+                                    <input type="text" name="phone" id="phone" class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $row["phone"] ?>">
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <label for="address" class="text-gray-700">Address <span class="text-red-500">*</span></label>
-                                    <input type="text" name="address" id="address" class="border-2 border-gray-200 rounded-md p-2" value="">
+                                    <input type="text" name="address" id="address" class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $row["address"] ?>">
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <label for="role" class="text-gray-700">Role <span class="text-red-500">*</span></label>

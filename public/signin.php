@@ -45,21 +45,57 @@ if(isset($_SESSION["id"])){
                             if(mysqli_num_rows($result) > 0){
                                 $row = mysqli_fetch_assoc($result);
                                 if(password_verify($password, $row["password"])){
-                                    session_start();
                                     $_SESSION["id"] = $row["id"];
                                     $_SESSION["fullname"] = $row["fullname"];
                                     $_SESSION["email"] = $row["email"];
                                     $_SESSION["role"] = $row["role"];
                                     $_SESSION["status"] = $row["status"];
-                                    header("Location: dashboard.php");
+                                    $_SESSION["photo"] = $row["photo"];
+                                    ob_start();
+                                    if(!headers_sent()){
+                                        header("Location: items.php");
+                                    } else{
+                                        echo "<script>window.location.href='items.php';</script>";
+                                    }
                                     print_r($_SESSION);
                                     die();
                                 }else{
-                                    echo "<p class='text-red-500'>Password salah</p>";
+                                    // add message to session data multiple array
+                                    $_SESSION["message"] = array(
+                                        "type" => "error",
+                                        "message" => "Password is wrong"
+                                    );
                                 }
                             }else{
-                                echo "<p class='text-red-500'>Email tidak terdaftar</p>";
+                                // add message to session
+                                $_SESSION["message"] = array(
+                                    "type" => "error",
+                                    "message" => "Email is not registered"
+                                );
                             }
+                        }
+                    ?>
+                    <?php
+                        // show message 
+                        if(isset($_SESSION["message"])){
+                            // change color based on message type with if else statement
+                            ?>
+                        <div class="flex flex-row items-center justify-between  w-full px-4 py-2 border-2 rounded-lg border-solid border-opacity-50
+                        <?php 
+                            if ($_SESSION["message"]["type"] == "error") {
+                                echo "bg-red-200 border-red-400 text-red-700";
+                            } else {
+                                echo "bg-green-200 border-green-400 text-green-700";
+                            }
+                        ?> ">
+                        <p><?php echo $_SESSION["message"]["message"]; ?></p>
+                        <button type="button" class="focus:outline-none"
+                            onclick="this.parentElement.style.display='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <?php
+                            unset($_SESSION["message"]);
                         }
                     ?>
                     <form action="signin.php" class="flex flex-col items-center justify-center" method="POST">

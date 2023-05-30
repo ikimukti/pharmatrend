@@ -23,10 +23,6 @@
             <div class="flex flex-col items-center justify-center">
                 <div class="flex flex-row justify-between space-x-2">
                     <div>
-                        <img class="w-16 h-16 rounded-full object-cover border-2 border-gray-300" src="img/bg.jpeg"
-                            alt="profile">
-                    </div>
-                    <div>
                         <h1 class="text-lg font-bold mt-2">
                             <?php echo $_SESSION["fullname"]; ?>
                         </h1>
