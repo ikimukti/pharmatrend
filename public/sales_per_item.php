@@ -9,7 +9,7 @@ if(!isset($_SESSION["id"])){
 require_once("config.php");
 if(!isset($_GET["search"])){
     ob_start();
-    header("Location: sales_per_item.php?page=1&search=");
+    header("Location: sales_per_item.php?page=".$_GET["page"]."&search=");
     die();
 }
 // item data with pagination and descending order and sales data acumulation
@@ -273,11 +273,11 @@ LIMIT $start, $limit
                                             
                                             if($page > 1){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $first_page; ?>"
+                                        <a href="?page=<?php echo $first_page; ?>?search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-left"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $prev_page; ?>"
+                                        <a href="?page=<?php echo $prev_page; ?>?search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-left"></i>
                                         </a>
@@ -292,7 +292,7 @@ LIMIT $start, $limit
                                                 }
                                                 if($i > $page - 3 && $i < $page + 3){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $i; ?>"
+                                        <a href="?page=<?php echo $i; ?>?search=<?php echo $_GET["search"]; ?>"
                                             class="<?php echo $active; ?> px-2 py-1 rounded-md">
                                             <?php echo $i; ?>
                                         </a>
@@ -305,11 +305,11 @@ LIMIT $start, $limit
                                             }
                                             if($page < $total_page){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $next_page; ?>"
+                                        <a href="?page=<?php echo $next_page; ?>?search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-right"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $total_page; ?>"
+                                        <a href="?page=<?php echo $total_page; ?>?search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-right"></i>
                                         </a>
