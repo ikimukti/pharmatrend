@@ -128,6 +128,7 @@ if(!isset($_SESSION["id"])){
                                             class="border-2 border-gray-200 rounded-md p-2" value="<?php echo $code; ?>"
                                             readonly>
                                     </div>
+                                    <!-- price -->
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="price" class="text-sm">Price</label>
                                         <div class="flex flex-row items-center gap-2">
@@ -136,6 +137,33 @@ if(!isset($_SESSION["id"])){
                                                 class="border-2 border-gray-200 rounded-md p-2 w-full">
                                         </div>
                                     </div>
+                                    <!-- unit -->
+                                    <div class="flex flex-col gap-2 mt-2">
+                                        <label for="unit" class="text-sm">Unit</label>
+                                        <select name="unit" id="unit" class="border-2 border-gray-200 rounded-md p-2">
+                                            <option value="pcs">Pcs</option>
+                                            <option value="box">Box</option>
+                                            <option value="kg">Kg</option>
+                                            <option value="gram">Gram</option>
+                                            <option value="liter">Liter</option>
+                                            <option value="ml">Ml</option>
+                                            <option value="pack">Pack</option>
+                                            <option value="set">Set</option>
+                                            <option value="dozen">Dozen</option>
+                                            <option value="bottle">Bottle</option>
+                                            <option value="can">Can</option>
+                                            <option value="roll">Roll</option>
+                                            <option value="tube">Tube</option>
+                                            <option value="bag">Bag</option>
+                                            <option value="sack">Sack</option>
+                                            <option value="bunch">Bunch</option>
+                                            <option value="piece">Piece</option>
+                                            <option value="pair">Pair</option>
+                                            <option value="unit">Unit</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <!-- stock -->
                                     <!-- <div class="flex flex-col gap-2 mt-2">
                                         <label for="stock" class="text-sm">Stock</label>
                                         <input type="number" name="stock" id="stock" class="border-2 border-gray-200 rounded-md p-2">

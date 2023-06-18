@@ -6,6 +6,11 @@ if(!isset($_SESSION["id"])){
     
     die();
 }
+if(!isset($_GET["search"])){
+    ob_start();
+    header("Location: items.php?page=1&search=");
+    die();
+}
 require_once("config.php");
 // item data with pagination and descending order
 $limit = 10;
@@ -20,7 +25,7 @@ $previous_page = $page - 1;
 $next_page = $page + 1;
 $no = $start + 1;
 // search item
-if(isset($_GET  ["search"])){
+if(isset($_GET["search"])){
     $search = $_GET["search"];
     $items = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' ORDER BY id DESC LIMIT $start, $limit");
     $items_all = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%'");
@@ -90,14 +95,16 @@ if(isset($_GET  ["search"])){
                                         <i class="fas fa-plus"></i>
                                         Add Item
                                     </a>
-                                    <input type="text" name="search" id="search"
+                                    <form action="items.php" method="GET" class="flex flex-row items-center gap-2">
+                                        <input type="text" name="search" id="search"
                                         class="border-2 border-gray-200 rounded-md px-4 py-2 focus:outline-none focus:border-blue-400"
-                                        placeholder="Search">
-                                    <button type="button"
-                                        class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
-                                        <i class="fas fa-search"></i>
-                                        Search
-                                    </button>
+                                        placeholder="Search" autocomplete="off" value="<?php echo isset($_GET["search"]) ? $_GET["search"] : ""; ?>">
+                                        <button type="submit"
+                                            class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
+                                            <i class="fas fa-search"></i>
+                                            Search
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                             <!-- table data item -->
@@ -122,20 +129,29 @@ if(isset($_GET  ["search"])){
                                         <tr>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-hashtag"></i>    
-                                            No</th>
+                                                No
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-barcode"></i>    
-                                            Code</th>
+                                                Code
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-box"></i>    
-                                            Name</th>
+                                                Name
+                                            </th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-boxes"></i> 
+                                                Unit
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-money-bill-wave"></i>    
-                                            Price</th>
+                                                Price
+                                            </th>
                                             <!-- <th class="px-2 py-2">Stock</th> -->
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-cog"></i>    
-                                            Action</th>
+                                                Action
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -144,8 +160,14 @@ if(isset($_GET  ["search"])){
                                         ?>
                                         <tr class="border-b-2 border-gray-200">
                                             <td class="px-2 py-2"><?php echo $no++; ?></td>
-                                            <td class="px-2 py-2"><?php echo $item["code"]; ?></td>
+                                            <td class="px-2 py-2">
+                                                <a href="detail_item.php?id=<?php echo $item["id"]; ?>"
+                                                    class="text-blue-400 hover:text-blue-600">
+                                                    <?php echo $item["code"]; ?>
+                                                </a>
+                                            </td>
                                             <td class="px-2 py-2"><?php echo $item["name"]; ?></td>
+                                            <td class="px-2 py-2"><?php echo $item["unit"]; ?></td>
                                             <td class="px-2 py-2">Rp. <?php echo number_format($item["price"]); ?></td>
                                             <!-- <td class="px-2 py-2"></td> -->
                                             <td class="px-2 py-2 space-x-2">
@@ -177,7 +199,7 @@ if(isset($_GET  ["search"])){
                                 <div class="flex flex-row items-center justify-between mt-2">
                                     <!-- total data -->
                                     <?php
-                                        $sql = "SELECT * FROM items";
+                                        $sql = "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' OR price LIKE '%$search%' OR stock LIKE '%$search%' ORDER BY id DESC";
                                             $result = mysqli_query($conn, $sql);
                                             $total_data = mysqli_num_rows($result);
                                             $total_page = ceil($total_data / $limit);
@@ -189,14 +211,13 @@ if(isset($_GET  ["search"])){
                                     <!-- pagination with number -->
                                     <div class="flex flex-row items-center justify-end gap-2 mt-2 text-sm">
                                         <?php
-                                            
                                             if($page > 1){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $first_page; ?>"
+                                        <a href="items.php?page=<?php echo $first_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-left"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $prev_page; ?>"
+                                        <a href="items.php?page=<?php echo $prev_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-left"></i>
                                         </a>
@@ -211,7 +232,7 @@ if(isset($_GET  ["search"])){
                                                 }
                                                 if($i > $page - 3 && $i < $page + 3){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $i; ?>"
+                                        <a href="items.php?page=<?php echo $i; ?>&search=<?php echo $search; ?>"
                                             class="<?php echo $active; ?> px-2 py-1 rounded-md">
                                             <?php echo $i; ?>
                                         </a>
@@ -224,11 +245,11 @@ if(isset($_GET  ["search"])){
                                             }
                                             if($page < $total_page){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $next_page; ?>"
+                                        <a href="items.php?page=<?php echo $next_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-right"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $total_page; ?>"
+                                        <a href="items.php?page=<?php echo $total_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-right"></i>
                                         </a>

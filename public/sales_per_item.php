@@ -7,12 +7,17 @@ if(!isset($_SESSION["id"])){
     die();
 }
 require_once("config.php");
+if(!isset($_GET["search"])){
+    ob_start();
+    header("Location: sales_per_item.php?page=1&search=");
+    die();
+}
 // item data with pagination and descending order and sales data acumulation
 $limit = 10;
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
 $start = ($page > 1) ? ($page * $limit) - $limit : 0;
 // sql untuk mengambil i.id, i.code, i.name, i.price, jumlah dari sales yang terjadi pada item tersebut berdasarkan id_item, kemudian hitung jumlah bulan di tahun tersebut yang terjadi pada sales berdasarkan kolom month dan total_month_last_year = jumlah month year pada sales 2 tahun terakhir
-$sales = mysqli_query($conn, "SELECT i.id, i.code, i.name, i.price, 
+$sales = mysqli_query($conn, "SELECT i.id, i.code, i.name, i.price, i.stock, i.unit, s.id_item,
        SUM(s.sold) AS total_sales, 
        COUNT(DISTINCT CONCAT(s.month, s.year)) AS total_month, 
        COALESCE(t.total_month_last_year, 0) AS total_month_last_year
@@ -29,8 +34,6 @@ LEFT JOIN (
 GROUP BY i.id 
 ORDER BY total_sales DESC 
 LIMIT $start, $limit;
-
-
 ");
 $items_all = mysqli_query($conn, "SELECT * FROM items");
 $total = mysqli_num_rows($items_all);
@@ -40,14 +43,34 @@ $previous_page = $page - 1;
 $next_page = $page + 1;
 $no = $start + 1;
 // search item
-if(isset($_GET  ["search"])){
+if(isset($_GET["search"])){
     $search = $_GET["search"];
-    $items = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' ORDER BY id DESC LIMIT $start, $limit");
+    $sales = mysqli_query($conn, "SELECT i.id, i.code, i.name, i.price, i.stock, i.unit, s.id_item,
+       SUM(s.sold) AS total_sales, 
+       COUNT(DISTINCT CONCAT(s.month, s.year)) AS total_month, 
+       COALESCE(t.total_month_last_year, 0) AS total_month_last_year
+FROM items i
+LEFT JOIN sales s ON i.id = s.id_item
+LEFT JOIN (
+   SELECT s1.id_item, COUNT(DISTINCT CONCAT(s1.month, s1.year)) AS total_month_last_year
+   FROM sales s1
+   WHERE (s1.year >= YEAR(CURDATE()) - 3 AND s1.year <= YEAR(CURDATE()) - 1) -- Tahun ke-3, ke-2, dan ke-1 sejak saat ini
+      OR (s1.year = YEAR(CURDATE()) AND s1.month <= MONTH(CURDATE())) -- Bulan-bulan di tahun ini hingga bulan saat ini
+   GROUP BY s1.id_item
+   HAVING COUNT(DISTINCT CONCAT(s1.month, s1.year)) >= 12
+) AS t ON i.id = t.id_item
+WHERE i.name LIKE '%$search%' OR i.code LIKE '%$search%'
+GROUP BY i.id
+ORDER BY total_sales DESC
+LIMIT $start, $limit
+");
     $items_all = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%'");
     $total = mysqli_num_rows($items_all);
     $pages = ceil($total / $limit);
-    $previous = $page - 1;
-    $next = $page + 1;
+    $first_page = 1;
+    $previous_page = $page - 1;
+    $next_page = $page + 1;
+    $no = $start + 1;
 }
 ?>
 <!DOCTYPE html>
@@ -103,18 +126,16 @@ if(isset($_GET  ["search"])){
 
                                 </div>
                                 <div class="flex flex-row items-center gap-2">
-                                    <!-- <a href="sales_add_item.php"
-                                        class="bg-blue-400 text-white px-4 py-2 rounded mx-4 my-2 hover:bg-blue-600">
-                                        Add Item
-                                    </a> -->
-                                    <input type="text" name="search" id="search"
+                                    <form action="sales_per_item.php" method="GET" class="flex flex-row items-center gap-2">
+                                        <input type="text" name="search" id="search"
                                         class="border-2 border-gray-200 rounded-md px-4 py-2 focus:outline-none focus:border-blue-400"
-                                        placeholder="Search">
-                                    <button type="button"
-                                        class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
-                                        <i class="fas fa-search"></i>
-                                        Search
-                                    </button>
+                                        placeholder="Search" autocomplete="off" value="<?php echo isset($_GET["search"]) ? $_GET["search"] : ""; ?>">
+                                        <button type="submit"
+                                            class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
+                                            <i class="fas fa-search"></i>
+                                            Search
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                             <!-- table data item -->
@@ -168,7 +189,10 @@ if(isset($_GET  ["search"])){
                                                 <?php echo substr($sale["code"], 0, 5); ?>
                                             </td>
                                             <td class="px-2 py-2">
-                                                <?php echo $sale["name"]; ?>
+                                                <a href="detail_sales_per_item.php?id=<?php echo $sale["id_item"]; ?>"
+                                                    class="text-blue-400 hover:text-blue-600">
+                                                    <?php echo $sale["name"]; ?>
+                                                </a>
                                             </td>
                                             <td class="px-2 py-2">
                                                 Rp. <?php echo number_format($sale["price"]); ?>
@@ -177,7 +201,7 @@ if(isset($_GET  ["search"])){
                                             <td class="px-2 py-2">
                                                 <?php
                                                     $total_sales = $sale["total_sales"] == null ? 0 : $sale["total_sales"];
-                                                    echo number_format($total_sales, 0, '.', ',')." Pcs";
+                                                    echo number_format($total_sales, 0, '.', ',')." ".$sale["unit"];
                                                 ?></td>
                                             <!-- jika total month kosong maka tampilkan 0 -->
                                             <td class="px-2 py-2">
@@ -234,7 +258,7 @@ if(isset($_GET  ["search"])){
                                 <div class="flex flex-row items-center justify-between mt-2">
                                     <!-- total data -->
                                     <?php
-                                        $sql = "SELECT * FROM items";
+                                        $sql = "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' OR price LIKE '%$search%' OR stock LIKE '%$search%' ORDER BY id DESC";
                                             $result = mysqli_query($conn, $sql);
                                             $total_data = mysqli_num_rows($result);
                                             $total_page = ceil($total_data / $limit);

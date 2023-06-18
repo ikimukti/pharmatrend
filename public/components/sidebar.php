@@ -99,7 +99,7 @@ if(!isset($_SESSION["id"])){
                     class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                     <div>
                         <i class="text-fuchsia-500 text-lg mr-2 fas fa-boxes"></i>
-                        <a href="items.php" class="text-gray-700 hover:text-gray-900">Items All</a>
+                        <a href="items.php?page=1&search=" class="text-gray-700 hover:text-gray-900">Items</a>
                     </div>
                 </li>
                 <li
@@ -129,7 +129,7 @@ if(!isset($_SESSION["id"])){
                     class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                     <div>
                         <i class="text-fuchsia-500 text-lg mr-2 fas fa-shopping-cart"></i>
-                        <a href="sales.php" class="text-gray-700 hover:text-gray-900">Sales All</a>
+                        <a href="sales.php?page=1&search=" class="text-gray-700 hover:text-gray-900">Sales</a>
                     </div>
                 </li>
                 <li
@@ -143,7 +143,16 @@ if(!isset($_SESSION["id"])){
                     class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                     <div>
                         <i class="text-fuchsia-500 text-lg mr-2 fa-solid fa-bag-shopping"></i>
-                        <a href="sales_per_item.php" class="text-gray-700 hover:text-gray-900">Sales Per Item</a>
+                        <a href="sales_per_item.php?page=1&search=" class="text-gray-700 hover:text-gray-900">Sales
+                            Per Item</a>
+                    </div>
+                </li>
+                <li
+                    class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
+                    <div>
+                        <i class="text-fuchsia-500 text-lg mr-2 fa-solid fa-calendar"></i>
+                        <a href="sales_per_month.php?page=1&year="
+                            class="text-gray-700 hover:text-gray-900">Sales Per Month</a>
                     </div>
                 </li>
             </ul>

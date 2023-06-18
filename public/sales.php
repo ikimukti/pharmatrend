@@ -6,13 +6,18 @@ if(!isset($_SESSION["id"])){
     die();
 }
 require_once("config.php");
+if(!isset($_GET["search"])){
+    ob_start();
+    header("Location: items.php?page=1&search=");
+    die();
+}
 // item data with pagination and descending order
 $limit = 10;
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
 $start = ($page > 1) ? ($page * $limit) - $limit : 0;
 // join table sales and items
-$sales = "SELECT s.id, s.code, s.sold, s.month, s.year, s.created_at, i.name, i.price, i.stock FROM sales s INNER JOIN items i ON s.id_item = i.id ORDER BY s.id DESC LIMIT $start, $limit";
-$sales_all = "SELECT s.id, s.code, s.sold, s.month, s.year, s.created_at, i.name, i.price, i.stock FROM sales s INNER JOIN items i ON s.id_item = i.id ORDER BY s.id DESC";
+$sales = "SELECT s.id, s.code, s.sold, s.month, s.year, s.created_at, i.name, i.price, i.stock, i.unit, s.id_item FROM sales s INNER JOIN items i ON s.id_item = i.id ORDER BY s.id DESC LIMIT $start, $limit";
+$sales_all = "SELECT s.id, s.code, s.sold, s.month, s.year, s.created_at, i.name, i.price, i.stock, i.unit, s.id_item  FROM sales s INNER JOIN items i ON s.id_item = i.id ORDER BY s.id DESC";
 $sales_result = mysqli_query($conn, $sales);
 $sales_all_result = mysqli_query($conn, $sales_all);
 $total = mysqli_num_rows($sales_all_result);
@@ -22,6 +27,20 @@ $prev_page = $page - 1;
 $next_page = $page + 1;
 $last_page = $pages;
 $no = $start + 1;
+if(isset($_GET["search"])){
+    $search = $_GET["search"];
+    $sales = "SELECT s.id, s.code, s.sold, s.month, s.year, s.created_at, i.name, i.price, i.stock, i.unit, s.id_item  FROM sales s INNER JOIN items i ON s.id_item = i.id WHERE s.code LIKE '%$search%' OR s.sold LIKE '%$search%' OR s.month LIKE '%$search%' OR s.year LIKE '%$search%' OR s.created_at LIKE '%$search%' OR i.name LIKE '%$search%' OR i.price LIKE '%$search%' OR i.stock LIKE '%$search%' ORDER BY s.id DESC LIMIT $start, $limit";
+    $sales_all = "SELECT s.id, s.code, s.sold, s.month, s.year, s.created_at, i.name, i.price, i.stock, i.unit, s.id_item  FROM sales s INNER JOIN items i ON s.id_item = i.id WHERE s.code LIKE '%$search%' OR s.sold LIKE '%$search%' OR s.month LIKE '%$search%' OR s.year LIKE '%$search%' OR s.created_at LIKE '%$search%' OR i.name LIKE '%$search%' OR i.price LIKE '%$search%' OR i.stock LIKE '%$search%' ORDER BY s.id DESC";
+    $sales_result = mysqli_query($conn, $sales);
+    $sales_all_result = mysqli_query($conn, $sales_all);
+    $total = mysqli_num_rows($sales_all_result);
+    $pages = ceil($total / $limit);
+    $first_page = 1;
+    $prev_page = $page - 1;
+    $next_page = $page + 1;
+    $last_page = $pages;
+    $no = $start + 1;
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -80,14 +99,16 @@ $no = $start + 1;
                                         <i class="fas fa-plus"></i>
                                         Add Sales
                                     </a>
-                                    <input type="text" name="search" id="search"
+                                    <form action="sales.php" method="GET" class="flex flex-row items-center gap-2">
+                                        <input type="text" name="search" id="search"
                                         class="border-2 border-gray-200 rounded-md px-4 py-2 focus:outline-none focus:border-blue-400"
-                                        placeholder="Search">
-                                    <button type="button"
-                                        class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
-                                        <i class="fas fa-search"></i>
-                                        Search
-                                    </button>
+                                        placeholder="Search" autocomplete="off" value="<?php echo isset($_GET["search"]) ? $_GET["search"] : ""; ?>">
+                                        <button type="submit"
+                                            class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
+                                            <i class="fas fa-search"></i>
+                                            Search
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                             <?php
@@ -113,22 +134,28 @@ $no = $start + 1;
                                         <tr>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-hashtag"></i>    
-                                            No</th>
+                                                No
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-barcode"></i>    
-                                            Code</th>
+                                                Code
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-box"></i>   
-                                            Item</th>
+                                                Item
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-boxes"></i>    
-                                            Sold</th>
+                                                Sold
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-calendar"></i>    
-                                            Date</th>
+                                                Date
+                                            </th>
                                             <th class="px-2 py-2">
                                                 <i class="fas fa-cog"></i>   
-                                            Action</th>
+                                                Action
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -152,9 +179,16 @@ $no = $start + 1;
                                         ?>
                                         <tr class="border-b-2 border-gray-200">
                                             <td class="px-2 py-2"><?php echo $no++; ?></td>
-                                            <td class="px-2 py-2"><?php echo $sales["code"]; ?></td>
-                                            <td class="px-2 py-2"><?php echo $sales["name"]; ?></td>
-                                            <td class="px-2 py-2"><?php echo $sales["sold"]; ?> pack</td>
+                                            <td class="px-2 py-2">
+                                                <?php echo $sales["code"]; ?>
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                <a href="detail_item.php?id=<?php echo $sales["id_item"]; ?>"
+                                                    class="text-blue-400 hover:text-blue-600">
+                                                    <?php echo $sales["name"]; ?>
+                                                </a>
+                                            </td>
+                                            <td class="px-2 py-2"><?php echo $sales["sold"] . " " . $sales["unit"]; ?></td>
                                             <!-- $bulan[$sales["month"]]; + $sales["year"];  -->
                                             <td class="px-2 py-2"><?php echo $bulan[$sales["month"]]; ?> <?php echo $sales["year"]; ?></td>
                                             <td class="px-2 py-2">
@@ -179,7 +213,7 @@ $no = $start + 1;
                                 <div class="flex flex-row items-center justify-between mt-2">
                                     <!-- total data -->
                                     <?php
-                                        $sql = "SELECT * FROM items";
+                                        $sql = "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' OR price LIKE '%$search%' OR stock LIKE '%$search%' ORDER BY id DESC";
                                             $result = mysqli_query($conn, $sql);
                                             $total_data = mysqli_num_rows($result);
                                             $total_page = ceil($total_data / $limit);
@@ -194,11 +228,11 @@ $no = $start + 1;
                                             
                                             if($page > 1){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $first_page; ?>"
+                                        <a href="sales.php?page=<?php echo $first_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-left"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $prev_page; ?>"
+                                        <a href="sales.php?page=<?php echo $prev_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-left"></i>
                                         </a>
@@ -213,7 +247,7 @@ $no = $start + 1;
                                                 }
                                                 if($i > $page - 3 && $i < $page + 3){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $i; ?>"
+                                        <a href="sales.php?page=<?php echo $i; ?>&search=<?php echo $search; ?>"
                                             class="<?php echo $active; ?> px-2 py-1 rounded-md">
                                             <?php echo $i; ?>
                                         </a>
@@ -226,11 +260,11 @@ $no = $start + 1;
                                             }
                                             if($page < $total_page){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $next_page; ?>"
+                                        <a href="sales.php?page=<?php echo $next_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-right"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $total_page; ?>"
+                                        <a href="sales.php?page=<?php echo $total_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-right"></i>
                                         </a>
