@@ -45,7 +45,7 @@
                         class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                         <div>
                             <i class="fas fa-cog text-fuchsia-500 mr-2"></i>
-                            <a href="setting.php" class="text-gray-500 hover:text-gray-900">Setting</a>
+                            <a href="setting.php?id=1" class="text-gray-500 hover:text-gray-900">Setting</a>
                         </div>
                     </li>
                     <hr class="border-gray-200">

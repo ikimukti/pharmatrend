@@ -164,7 +164,7 @@ if(!isset($_SESSION["id"])){
                 class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                 <div class="flex flex-row items-center">
                     <i class="fa-solid fa-gear text-fuchsia-500 text-lg mr-2"></i>
-                    <a class="text-gray-700 hover:text-gray-900" href="setting.php">Settings</a>
+                    <a class="text-gray-700 hover:text-gray-900" href="setting.php?id=1">Setting</a>
                 </div>
             </li>
             <!-- Sign out -->
