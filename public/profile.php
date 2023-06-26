@@ -87,7 +87,7 @@ if(isset($_GET  ["search"])){
                         ?>
                         <!-- Form Profile -->
                         <div class="flex flex-col gap-4 w-full">
-                            <form action="process/profile.php" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4 w-full">
+                            <form action="edit_profile.php" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4 w-full">
                                 <!-- Profile Preview -->
                                 <div class="flex flex-col gap-2">
                                     <label for="photo" class="text-gray-700">Photo <span class="text-red-500">*</span></label>
@@ -136,10 +136,9 @@ if(isset($_GET  ["search"])){
                                     <input type="text" name="status" id="status" class="border-2 border-gray-200 rounded-md p-2 bg-gray-200" value="<?php echo $row["status"] ?>" readonly>
                                 </div>
                                 <!-- button -->
-                                <div class="flex flex-row gap-2 mb-10 justify-end">
-                                    <button type="submit" name="update" class="bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4">
-                                        <i class="fas fa-save"></i>     
-                                    Update</button>
+                                <div class="flex flex-row gap-2">
+                                    <button type="submit" name="update" class="bg-blue-500 hover:bg-blue-600 rounded-md px-4 py-2 text-white">Update</button>
+                                    <button type="reset" class="bg-red-500 hover:bg-red-600 rounded-md px-4 py-2 text-white">Reset</button>
                                 </div>
                             </form>
                         </div>

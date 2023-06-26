@@ -48,11 +48,6 @@ if(!isset($_SESSION["id"])){
                     <i class="fa-solid fa-lock text-fuchsia-500 text-lg mr-2"></i>
                     <a class="text-gray-700 hover:text-gray-900" href="manage_user.php">Manage Users</a>
                 </div>
-                <!-- dropdown menu -->
-                <div>
-                    <i class="fas fa-chevron-down first-letter:text-gray-500 ml-auto rotate-180"
-                        id="dropdown-icon-5"></i>
-                </div>
             </li>
             <?php
             }

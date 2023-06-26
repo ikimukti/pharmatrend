@@ -39,7 +39,7 @@ $items_all = mysqli_query($conn, "SELECT * FROM items");
 $total = mysqli_num_rows($items_all);
 $pages = ceil($total / $limit);
 $first_page = 1;
-$previous_page = $page - 1;
+$prev_page = $page - 1;
 $next_page = $page + 1;
 $no = $start + 1;
 // search item
@@ -279,11 +279,11 @@ LIMIT $start, $limit
                                             
                                             if($page > 1){
                                         ?>
-                                        <a href="?page=<?php echo $first_page; ?>?search=<?php echo $_GET["search"]; ?>"
+                                        <a href="?page=<?php echo $first_page; ?>&search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-left"></i>
                                         </a>
-                                        <a href="?page=<?php echo $prev_page; ?>?search=<?php echo $_GET["search"]; ?>"
+                                        <a href="?page=<?php echo $prev_page; ?>&search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-left"></i>
                                         </a>
@@ -298,7 +298,7 @@ LIMIT $start, $limit
                                                 }
                                                 if($i > $page - 3 && $i < $page + 3){
                                         ?>
-                                        <a href="?page=<?php echo $i; ?>?search=<?php echo $_GET["search"]; ?>"
+                                        <a href="?page=<?php echo $i; ?>&search=<?php echo $_GET["search"]; ?>"
                                             class="<?php echo $active; ?> px-2 py-1 rounded-md">
                                             <?php echo $i; ?>
                                         </a>
@@ -311,11 +311,11 @@ LIMIT $start, $limit
                                             }
                                             if($page < $total_page){
                                         ?>
-                                        <a href="?page=<?php echo $next_page; ?>?search=<?php echo $_GET["search"]; ?>"
+                                        <a href="?page=<?php echo $next_page; ?>&search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-right"></i>
                                         </a>
-                                        <a href="?page=<?php echo $total_page; ?>?search=<?php echo $_GET["search"]; ?>"
+                                        <a href="?page=<?php echo $total_page; ?>&search=<?php echo $_GET["search"]; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
                                             <i class="fas fa-angle-double-right"></i>
                                         </a>
