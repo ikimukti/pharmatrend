@@ -107,13 +107,19 @@ LIMIT $start, $limit
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
-                    <div class="flex items-center gap-2 mb-3">
-                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
-                        <span class="text-gray-700">/</span>
-                        <a href="sales.php" class="text-gray-700 hover:text-gray-950">Sales</a>
-                        <span class="text-gray-700">/</span>
-                        <!-- page -->
-                        <a href="sales_per_item.php" class="text-blue-400 hover:text-blue-600">Sales Per Item</a>
+                    <div class="flex items-center gap-2 mb-3 justify-between">
+                        <div>
+                            <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
+                            <span class="text-gray-700">/</span>
+                            <a href="sales.php" class="text-gray-700 hover:text-gray-950">Sales</a>
+                            <span class="text-gray-700">/</span>
+                            <!-- page -->
+                            <a href="sales_per_item.php" class="text-blue-400 hover:text-blue-600">Sales Per Item</a>
+                        </div>
+                        <button class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" onclick="window.history.back();">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back</span>
+                        </button>
                     </div>
                     <hr>
                     <!-- content -->

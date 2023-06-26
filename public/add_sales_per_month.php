@@ -140,10 +140,9 @@ if (isset($_POST['submit'])) {
                                 <?php echo $_GET["year"]; ?> / <?php echo $_GET["month"]; ?>
                             </a>
                         </div>
-                        <button onclick="window.history.back()"
-                            class="bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        <button class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" onclick="window.history.back();">
                             <i class="fas fa-arrow-left"></i>
-                            Back
+                            <span>Back</span>
                         </button>
                     </div>
                     <hr>

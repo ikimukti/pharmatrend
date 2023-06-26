@@ -134,11 +134,10 @@ $result2 = mysqli_query($conn, $query2);
                             <!-- page -->
                             <a href="sales_per_month.php" class="text-gray-700 hover:text-gray-950">Sales Per Month</a>
                         </div>
-                        <!-- button back -->
-                        <a href="sales.php" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-md">
+                        <button class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" onclick="window.history.back();">
                             <i class="fas fa-arrow-left"></i>
                             <span>Back</span>
-                        </a>
+                        </button>
                     </div>
                     <hr>
                     <!-- content -->

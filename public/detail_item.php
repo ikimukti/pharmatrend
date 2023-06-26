@@ -131,11 +131,10 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                             <a href="items.php?id=<?php echo $_GET['id']; ?>"
                                 class="text-gray-700 hover:text-gray-950"><?php echo $_GET['id']; ?></a>
                         </div>
-                        <!-- button back -->
-                        <a href="items.php" class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
+                        <button class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" onclick="window.history.back();">
                             <i class="fas fa-arrow-left"></i>
                             <span>Back</span>
-                        </a>
+                        </button>
                     </div>
                     <hr>
                     <!-- content -->

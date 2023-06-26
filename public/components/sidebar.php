@@ -41,11 +41,12 @@ if(!isset($_SESSION["id"])){
             <?php
             if($_SESSION["role"] == "admin"){
             ?>
+            <hr class="border-gray-200">
             <li class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer"
                 onclick="toggleDropdown('5')">
                 <div class="flex flex-row items-center">
                     <i class="fa-solid fa-lock text-fuchsia-500 text-lg mr-2"></i>
-                    <p class="text-gray-700 hover:text-gray-900">Manage</p>
+                    <a class="text-gray-700 hover:text-gray-900" href="manage_user.php">Manage Users</a>
                 </div>
                 <!-- dropdown menu -->
                 <div>
@@ -53,30 +54,6 @@ if(!isset($_SESSION["id"])){
                         id="dropdown-icon-5"></i>
                 </div>
             </li>
-            <!-- dropdown menu list with icons and text -->
-            <ul id="dropdown-menu-5" class="flex-col space-y-2 pl-4 py-2 hidden">
-                <li
-                    class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
-                    <div>
-                        <i class="text-fuchsia-500 text-lg mr-2 fas fa-users"></i>
-                        <a href="users.php" class="text-gray-700 hover:text-gray-900">Users</a>
-                    </div>
-                </li>
-                <li
-                    class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
-                    <div>
-                        <i class="text-fuchsia-500 text-lg mr-2 fas fa-user-plus"></i>
-                        <a href="add_user.php" class="text-gray-700 hover:text-gray-900">Add User</a>
-                    </div>
-                </li>
-                <li
-                    class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
-                    <div>
-                        <i class="text-fuchsia-500 text-lg mr-2 fas fa-user-cog"></i>
-                        <a href="roles.php" class="text-gray-700 hover:text-gray-900">Roles</a>
-                    </div>
-                </li>
-            </ul>
             <?php
             }
             ?>
@@ -192,7 +169,7 @@ if(!isset($_SESSION["id"])){
                 class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                 <div class="flex flex-row items-center">
                     <i class="fa-solid fa-gear text-fuchsia-500 text-lg mr-2"></i>
-                    <a class="text-gray-700 hover:text-gray-900" href="settings.php">Settings</a>
+                    <a class="text-gray-700 hover:text-gray-900" href="setting.php">Settings</a>
                 </div>
             </li>
             <!-- Sign out -->

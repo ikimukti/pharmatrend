@@ -21,7 +21,7 @@ $items_all = mysqli_query($conn, "SELECT * FROM items");
 $total = mysqli_num_rows($items_all);
 $pages = ceil($total / $limit);
 $first_page = 1;
-$previous_page = $page - 1;
+$prev_page = $page - 1;
 $next_page = $page + 1;
 $no = $start + 1;
 // search item
@@ -69,15 +69,20 @@ if(isset($_GET["search"])){
                 <!-- container with breadcrumb -->
                 <div class="w-full h-auto border-2 border-gray-200 rounded-md py-4 px-6">
                     <!-- breadcrumb -->
-                    <div class="flex items-center gap-2 mb-3">
-                        
-                        <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
-                        <span class="text-gray-700">/</span>
-                        <a href="items.php" class="text-gray-700 hover:text-gray-950">Items</a>
-                        <span class="text-gray-700">/</span>
-                        <!-- page -->
-                        <a href="items.php?page=<?php echo $page; ?>"
-                            class="text-gray-700 hover:text-gray-950"><?php echo $page; ?></a>
+                    <div class="flex items-center gap-2 mb-3 justify-between">
+                        <div>
+                            <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
+                            <span class="text-gray-700">/</span>
+                            <a href="items.php" class="text-gray-700 hover:text-gray-950">Items</a>
+                            <span class="text-gray-700">/</span>
+                            <!-- page -->
+                            <a href="items.php?page=<?php echo $page; ?>"
+                                class="text-gray-700 hover:text-gray-950"><?php echo $page; ?></a>
+                        </div>
+                        <button class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" onclick="window.history.back();">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back</span>
+                        </button>
                     </div>
                     <hr>
                     <!-- content -->
