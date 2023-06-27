@@ -83,6 +83,30 @@ $itemSoldAllTimeResult = mysqli_query($conn, $itemSoldAllTimeQuery);
 $itemSoldAllTimeRow = mysqli_fetch_assoc($itemSoldAllTimeResult);
 $itemSoldAllTime = $itemSoldAllTimeRow['itemSoldAllTime'];
 
+$sales = mysqli_query($conn, "SELECT i.id, i.code, i.name, i.price, i.stock, i.unit, s.id_item,
+       SUM(s.sold) AS total_sales, 
+       COUNT(DISTINCT CONCAT(s.month, s.year)) AS total_month, 
+       COALESCE(t.total_month_last_year, 0) AS total_month_last_year
+FROM items i 
+LEFT JOIN sales s ON i.id = s.id_item 
+LEFT JOIN (
+   SELECT s1.id_item, COUNT(DISTINCT CONCAT(s1.month, s1.year)) AS total_month_last_year
+   FROM sales s1
+   WHERE (s1.year >= YEAR(CURDATE()) - 3 AND s1.year <= YEAR(CURDATE()) - 1) -- Tahun ke-3, ke-2, dan ke-1 sejak saat ini
+      OR (s1.year = YEAR(CURDATE()) AND s1.month <= MONTH(CURDATE())) -- Bulan-bulan di tahun ini hingga bulan saat ini
+   GROUP BY s1.id_item
+   HAVING COUNT(DISTINCT CONCAT(s1.month, s1.year)) >= 12
+) AS t ON i.id = t.id_item
+GROUP BY i.id 
+ORDER BY total_sales DESC 
+");
+function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
+    $deltaX = $clusterPrice - $price;
+    $deltaY = $clusterSold - $sold;
+    $distance = sqrt(pow($deltaX, 2) + pow($deltaY, 2));
+    return $distance;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -138,93 +162,196 @@ $itemSoldAllTime = $itemSoldAllTimeRow['itemSoldAllTime'];
                         <h1 class="text-2xl font-bold">Analytics</h1>
                         <p class="text-gray-700">Welcome back, <?php echo $_SESSION['fullname']; ?> !, here's what's
                             happening with your store today.</p>
+                        <div class="flex flex-col gap-4">
+                        <?php
+                        $toogleBtnAnalytics = false;
+                        $toogleBtnAnalyticsCounter = 0;
+                        while ($salesRow = mysqli_fetch_assoc($sales)) {
+                            $salesId = $salesRow['id'];
+                            $salesName = $salesRow['name'];
+                            $salesTotalMonth = $salesRow['total_month'];
+                            $monthBtn = date("m") + 24;
+                            if($salesTotalMonth <= $monthBtn){
+                        ?>
+                        <!-- item link to sales per item -->
+                        <div href="sales_per_item.php?id=<?php echo $salesId; ?>" class="w-full h-auto bg-white rounded-md shadow-md p-4 flex flex-row gap-4 items-center">
+                            <p>
+                                This <span class="font-bold"><?php echo $salesName; ?></span> item has been sold for <?php echo $salesTotalMonth; ?> months, click here to see the analytics.
+                            </p>
+                            <a href="add_sales_per_item.php?id=<?php echo $salesId; ?>&year=<?php echo $year; ?>" class="flex flex-row justify-center items-center bg-yellow-400 hover:bg-yellow-500 rounded-md px-4 py-2 text-white space-x-2">
+                                <i class="fas fa-arrow-right"></i>
+                                <span>See Item Detail</span>
+                            </a>
+                        </div>
+                        <?php
+                            $toogleBtnAnalyticsCounter++;
+                            }
+                        }
+                        if ($toogleBtnAnalyticsCounter == 0) {
+                            $toogleBtnAnalytics = true;
+                            // 2 tahun lalu
+                            $year = date("Y") - 2;
+                            // query untuk mendapatkan semua item yang terjual pada 2 tahun lalu rata-rata sold per month
+                            $sales2yearago = "SELECT i.id, i.name, AVG(s.sold) AS total_sold, i.price AS price, i.unit AS unit FROM items i JOIN sales s ON i.id = s.id_item WHERE year = '$year' OR year = '$year' + 1 GROUP BY i.id, i.name";
+                            $salesResult = mysqli_query($conn, $sales2yearago);
+                            // hitung data yang didapatkan
+                            $salesCount = mysqli_num_rows($salesResult);
+                            $salesAll = array();
+                            while ($salesRow = mysqli_fetch_assoc($salesResult)) {
+                                $salesId = $salesRow['id'];
+                                $salesName = $salesRow['name'];
+                                $salesTotalSold = $salesRow['total_sold'];
+                                $salesPrice = $salesRow['price'];
+                                $salesUnit = $salesRow['unit'];
+                                $dataSales = array(
+                                    "id" => $salesId,
+                                    "name" => $salesName,
+                                    "total_sold" => $salesTotalSold,
+                                    "total_sold_per_1000" => $salesTotalSold / 1000,
+                                    "price" => $salesPrice,
+                                    "price_per_1000" => $salesPrice / 1000,
+                                    "unit" => $salesUnit
+                                );
+                                array_push($salesAll, $dataSales);
+                            }
+                            $randomSales = array();
+
+                            // Mendapatkan jumlah data yang tersedia
+                            $totalData = count($salesAll);
+
+                            // Memastikan jumlah data yang tersedia cukup untuk diambil 3
+                            if ($totalData >= 3) {
+                                // Mengacak urutan data dalam array
+                                shuffle($salesAll);
+
+                                // Mengambil 3 data pertama setelah diacak
+                                $randomSales = array_slice($salesAll, 0, 3);
+                            } else {
+                                // Jika jumlah data kurang dari 3, mengembalikan semua data
+                                $randomSales = $salesAll;
+                            }
+                            $beetweenClassVariation = 0;
+                            $totalWithinClassVariation = 0;
+                            $rasio = 0;
+                            $clusterRun = array(
+                                "cluster1" => 0,
+                                "cluster2" => 0,
+                                "cluster3" => 0
+                            );
+                            $salesCluster = array();
+                            $clusterRepeat = false;
+                            $clusterIteration = 0;
+                            do{
+                                $beetweenClassVariation = 0;
+                                $totalWithinClassVariation = 0;
+                                foreach ($salesAll as $key => $value) {
+                                    $salesId = $salesAll[$key]['id'];
+                                    $salesName = $salesAll[$key]['name'];
+                                    $salesTotalSold = $salesAll[$key]['total_sold'];
+                                    $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
+                                    $salesPrice = $salesAll[$key]['price'];
+                                    $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
+                                    $salesUnit = $salesAll[$key]['unit'];
+                                    $m1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[0]['price_per_1000'], $salesPricePer1000);
+                                    $m2 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[1]['price_per_1000'], $salesPricePer1000);
+                                    $m3 = euclideanDistance($randomSales[2]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[2]['price_per_1000'], $salesPricePer1000);
+                                    $m = array($m1, $m2, $m3);
+                                    $mMin = min($m);
+                                    $mMax = max($m);
+                                    $mMinIndex = array_search($mMin, $m);
+                                    if($mMin == $m1) {
+                                        $clusterRun['cluster1'] += 1;
+                                    } else if($mMin == $m2) {
+                                        $clusterRun['cluster2'] += 1;
+                                    } else if($mMin == $m3) {
+                                        $clusterRun['cluster3'] += 1;
+                                    }
+                                    $mMaxIndex = array_search($mMax, $m);
+                                    $nearestCluster = $mMin;
+                                    $withinClassVariation = pow($nearestCluster, 2);
+                                    $totalWithinClassVariation += $withinClassVariation;
+                                    $dataSales = array(
+                                        "id" => $salesId,
+                                        "name" => $salesName,
+                                        "total_sold" => $salesTotalSold,
+                                        "total_sold_per_1000" => $salesTotalSold / 1000,
+                                        "price" => $salesPrice,
+                                        "price_per_1000" => $salesPrice / 1000,
+                                        "unit" => $salesUnit,
+                                        "m1" => $m1,
+                                        "m2" => $m2,
+                                        "m3" => $m3,
+                                        "mMin" => $mMin,
+                                        "mMinIndex" => $mMinIndex,
+                                        "mMax" => $mMax,
+                                        "mMaxIndex" => $mMaxIndex,
+                                        "nearest_cluster" => $nearestCluster,
+                                        "within_class_variation" => $withinClassVariation
+                                    );
+                                    array_push($salesCluster, $dataSales);
+                                } 
+                                $rasio = $beetweenClassVariation / $totalWithinClassVariation;
+                            } while($clusterRepeat == true);
+                            echo "<pre>";
+                            echo "Total Data : " . $totalData . "<br>";
+                            echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                            echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                            echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                            echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                            echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                            echo "Rasio : " . $rasio . "<br>";
+                            echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                            print_r($salesCluster);
+                            echo "</pre>";
+                            $clusterRun = array(
+                                "cluster1" => 0,
+                                "cluster2" => 0,
+                                "cluster3" => 0
+                            );
+                            do {
+                                foreach ($salesAll as $key => $value) {
+                                    $salesId = $salesAll[$key]['id'];
+                                    $salesName = $salesAll[$key]['name'];
+                                    $salesTotalSold = $salesAll[$key]['total_sold'];
+                                    $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
+                                    $salesPrice = $salesAll[$key]['price'];
+                                    $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
+                                    $salesUnit = $salesAll[$key]['unit'];
+                                    $m1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[0]['price_per_1000'], $salesPricePer1000);
+                                    $m2 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[1]['price_per_1000'], $salesPricePer1000);
+                                    $m3 = euclideanDistance($randomSales[2]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[2]['price_per_1000'], $salesPricePer1000);
+                                    $m = array($m1, $m2, $m3);
+                                    $mMin = min($m);
+                                    $mMax = max($m);
+                                    $mMinIndex = array_search($mMin, $m);
+                                    if($mMin == $m1) {
+                                        $clusterRun['cluster1'] += 1;
+                                    } else if($mMin == $m2) {
+                                        $clusterRun['cluster2'] += 1;
+                                    } else if($mMin == $m3) {
+                                        $clusterRun['cluster3'] += 1;
+                                    }
+                                    $mMaxIndex = array_search($mMax, $m);
+                                    $nearestCluster = $mMin;
+                                    $withinClassVariation = pow($nearestCluster, 2);
+                                    $totalWithinClassVariation += $withinClassVariation;
+                                }
+                                $rasio = $beetweenClassVariation / $totalWithinClassVariation;
+                            } while($clusterRepeat == true);
+                            echo "<pre>";
+                            echo "Total Data : " . $totalData . "<br>";
+                            echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                            echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                            echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                            echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                            echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                            echo "Rasio : " . $rasio . "<br>";
+                            echo "</pre>";
+                        }
+                        ?>
+                        </div>
                         <!-- item auto row 3 wrap -->
                         <div class="flex flex-wrap gap-4 items-center">
-                            <?php
-                                // Mendapatkan bulan dan tahun saat ini
-                                $currentYear = date('Y');
-                                $currentMonth = date('n');
-
-                                // Membuat array untuk menyimpan bulan dan tahun yang akan ditampilkan
-                                $years = array();
-                                $months = array();
-
-                                // Menambahkan tahun dan bulan saat ini ke dalam array
-                                $years[] = $currentYear;
-                                $months[] = $currentMonth;
-
-                                // Menambahkan 2 tahun dan bulan yang lalu ke dalam array
-                                for ($i = 1; $i <= 2; $i++) {
-                                    $previousYear = $currentYear;
-                                    $previousMonth = $currentMonth - $i;
-                                    if ($previousMonth <= 0) {
-                                        $previousYear--;
-                                        $previousMonth += 12;
-                                    }
-                                    $years[] = $previousYear;
-                                    $months[] = $previousMonth;
-                                }
-
-                                // Mengubah array tahun dan bulan menjadi string format query
-                                $dateConditions = array();
-                                for ($i = 0; $i < count($years); $i++) {
-                                    $year = $years[$i];
-                                    $month = str_pad($months[$i], 2, '0', STR_PAD_LEFT); // Format bulan menjadi 2 digit (01, 02, dst.)
-                                    $dateConditions[] = "(s.`year` = $year AND s.`month` = $month)";
-                                }
-
-                                // Menggabungkan kondisi tanggal menggunakan operator OR
-                                $dateCondition = implode(" OR ", $dateConditions);
-                                $whereCondition = "WHERE (s.`year` >= $currentYear - 2 AND s.`month` >= $currentMonth) OR (s.`year` >= $currentYear - 1 AND s.`month` < $currentMonth)";
-
-                                // Query untuk mendapatkan penjualan pada bulan-bulan tersebut
-                                $query = "SELECT s.`month`, s.`year`, SUM(s.`sold`) AS total_sales,
-                                            (SELECT COUNT(*) FROM `items`) AS total_product,
-                                            SUM(s.`sold` * i.`price`) AS income
-                                            FROM `sales` s
-                                            LEFT JOIN `items` i ON s.`id_item` = i.`id`
-                                            $whereCondition
-                                            GROUP BY s.`year`, s.`month`
-                                            ORDER BY s.`year` DESC, FIELD(s.`month`, '12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1') ASC";
-
-
-                                $result = $conn->query($query);
-
-                               // ...
-
-// Mengecek apakah ada bulan yang belum memasukkan penjualan untuk semua item
-$missingMonths = array();
-while ($row = $result->fetch_assoc()) {
-    $year = $row['year'];
-    $month = $row['month'];
-    $totalSales = $row['total_sales'];
-    $totalProduct = $row['total_product'];
-
-    // Mengecek apakah ada penjualan untuk semua item pada bulan tersebut
-    if ($totalSales < $totalProduct) {
-        $missingMonths[] = array('year' => $year, 'month' => $month);
-    }
-}
-
-// Menampilkan pesan jika ada bulan yang belum memasukkan penjualan untuk semua item
-if (!empty($missingMonths)) {
-    echo '<div class="w-full h-auto bg-white rounded-md shadow-md p-4">';
-    echo 'Terdapat bulan-bulan berikut yang belum memasukkan penjualan untuk semua item:';
-    echo '<ul>';
-    foreach ($missingMonths as $missingMonth) {
-        $year = $missingMonth['year'];
-        $month = $missingMonth['month'];
-        echo '<li>' . $month . '/' . $year . '</li>';
-    }
-    echo '</ul>';
-    echo '</div>';
-}
-
-// Melanjutkan menampilkan data penjualan seperti biasa
-// ...
-
-                                ?>
-
                             <!-- card info flex forecasting -->
                             <div class="w-full h-auto bg-white rounded-md shadow-md p-4">
                                 <div class="flex flex-row gap-2 justify-between">
@@ -271,11 +398,13 @@ if (!empty($missingMonths)) {
                                             <i class="fas fa-shopping-cart"></i>
                                             View Sales
                                         </a>
+                                        <?php if($toogleBtnAnalytics){ ?>
                                         <a href="sales.php"
                                             class="bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4 text-center text-sm">
                                             <i class="fas fa-chart-line"></i>
                                             View Analytics
                                         </a>
+                                        <?php } ?>
                                     </div>
                                 </div>
                             </div>
@@ -325,11 +454,13 @@ if (!empty($missingMonths)) {
                                             <i class="fas fa-shopping-cart"></i>
                                             View Sales
                                         </a>
+                                        <?php if($toogleBtnAnalytics){ ?>
                                         <a href="sales.php"
                                             class="bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4 text-center text-sm">
                                             <i class="fas fa-chart-line"></i>
                                             View Analytics
                                         </a>
+                                        <?php } ?>
                                     </div>
                                 </div>
                             </div>
@@ -353,11 +484,13 @@ if (!empty($missingMonths)) {
                                             <i class="fas fa-shopping-cart"></i>
                                             View Sales
                                         </a>
+                                        <?php if($toogleBtnAnalytics){ ?>
                                         <a href="sales.php"
                                             class="bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4 text-center text-sm">
                                             <i class="fas fa-chart-line"></i>
                                             View Analytics
                                         </a>
+                                        <?php } ?>
                                     </div>
                                 </div>
                             </div>
