@@ -230,21 +230,193 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                 // Jika jumlah data kurang dari 3, mengembalikan semua data
                                 $randomSales = $salesAll;
                             }
-                            $beetweenClassVariation = 0;
+                            $bw1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $randomSales[1]['total_sold_per_1000'], $randomSales[0]['price_per_1000'], $randomSales[1]['price_per_1000']);
+                            $bw2 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $randomSales[2]['total_sold_per_1000'], $randomSales[0]['price_per_1000'], $randomSales[2]['price_per_1000']);
+                            $bw3 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $randomSales[2]['total_sold_per_1000'], $randomSales[1]['price_per_1000'], $randomSales[2]['price_per_1000']);
+                            $beetweenClassVariation = ($bw1 + $bw2 + $bw3);
                             $totalWithinClassVariation = 0;
                             $rasio = 0;
+                            $newRasio = 0;
                             $clusterRun = array(
                                 "cluster1" => 0,
                                 "cluster2" => 0,
-                                "cluster3" => 0
+                                "cluster3" => 0,
+                                "cluster1_sold" => 0,
+                                "cluster2_sold" => 0,
+                                "cluster3_sold" => 0,
+                                "cluster1_price" => 0,
+                                "cluster2_price" => 0,
+                                "cluster3_price" => 0,
+                                "cluster1_sold_per_1000" => 0,
+                                "cluster2_sold_per_1000" => 0,
+                                "cluster3_sold_per_1000" => 0,
+                                "cluster1_price_per_1000" => 0,
+                                "cluster2_price_per_1000" => 0,
+                                "cluster3_price_per_1000" => 0
                             );
                             $salesCluster = array();
                             $clusterRepeat = false;
                             $clusterIteration = 0;
-                            do{
-                                $beetweenClassVariation = 0;
-                                $totalWithinClassVariation = 0;
-                                foreach ($salesAll as $key => $value) {
+                            foreach ($salesAll as $key => $value) {
+                                $salesId = $salesAll[$key]['id'];
+                                $salesName = $salesAll[$key]['name'];
+                                $salesTotalSold = $salesAll[$key]['total_sold'];
+                                $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
+                                $salesPrice = $salesAll[$key]['price'];
+                                $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
+                                $salesUnit = $salesAll[$key]['unit'];
+                                $m1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[0]['price_per_1000'], $salesPricePer1000);
+                                $m2 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[1]['price_per_1000'], $salesPricePer1000);
+                                $m3 = euclideanDistance($randomSales[2]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[2]['price_per_1000'], $salesPricePer1000);
+                                $m = array($m1, $m2, $m3);
+                                $mMin = min($m);
+                                $mMax = max($m);
+                                $mMinIndex = array_search($mMin, $m);
+                                if($mMin == $m1) {
+                                    $clusterRun['cluster1'] += 1;
+                                    $clusterRun['cluster1_sold'] += $salesTotalSold;
+                                    $clusterRun['cluster1_price'] += $salesPrice;
+                                    $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
+                                    $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
+                                } else if($mMin == $m2) {
+                                    $clusterRun['cluster2'] += 1;
+                                    $clusterRun['cluster2_sold'] += $salesTotalSold;
+                                    $clusterRun['cluster2_price'] += $salesPrice;
+                                    $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
+                                    $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
+                                } else if($mMin == $m3) {
+                                    $clusterRun['cluster3'] += 1;
+                                    $clusterRun['cluster3_sold'] += $salesTotalSold;
+                                    $clusterRun['cluster3_price'] += $salesPrice;
+                                    $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
+                                    $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
+                                }
+                                $mMaxIndex = array_search($mMax, $m);
+                                $nearestCluster = $mMin;
+                                $withinClassVariation = pow($nearestCluster, 2);
+                                $totalWithinClassVariation += $withinClassVariation;
+                                $dataSales = array(
+                                    "id" => $salesId,
+                                    "name" => $salesName,
+                                    "total_sold" => $salesTotalSold,
+                                    "total_sold_per_1000" => $salesTotalSold / 1000,
+                                    "price" => $salesPrice,
+                                    "price_per_1000" => $salesPrice / 1000,
+                                    "unit" => $salesUnit,
+                                    "m1" => $m1,
+                                    "m2" => $m2,
+                                    "m3" => $m3,
+                                    "mMin" => $mMin,
+                                    "mMinIndex" => $mMinIndex,
+                                    "mMax" => $mMax,
+                                    "mMaxIndex" => $mMaxIndex,
+                                    "nearest_cluster" => $nearestCluster,
+                                    "within_class_variation" => $withinClassVariation
+                                );
+                                array_push($salesCluster, $dataSales);
+                            } 
+                            $rasio = $beetweenClassVariation / $totalWithinClassVariation;
+                            // echo "<pre>";
+                            // echo "Total Data : " . $totalData . "<br>";
+                            // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                            // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                            // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                            // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                            // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                            // echo "Rasio : " . $rasio . "<br>";
+                            // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                            // echo "</pre>";
+                            $bw1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster2_price_per_1000']);
+                            $bw2 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
+                            $bw3 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster2_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
+                            $beetweenClassVariation = ($bw1 + $bw2 + $bw3);
+                            $clusterRun['cluster1'] = 0;
+                            $clusterRun['cluster2'] = 0;
+                            $clusterRun['cluster3'] = 0;
+                            $clusterIteration += 1;
+                            $dataSalesCluster = array();
+                            foreach ($salesCluster as $key => $value) {
+                                $salesId = $salesAll[$key]['id'];
+                                $salesName = $salesAll[$key]['name'];
+                                $salesTotalSold = $salesAll[$key]['total_sold'];
+                                $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
+                                $salesPrice = $salesAll[$key]['price'];
+                                $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
+                                $salesUnit = $salesAll[$key]['unit'];
+                                $m1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster1_price_per_1000'], $salesPricePer1000);
+                                $m2 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster2_price_per_1000'], $salesPricePer1000);
+                                $m3 = euclideanDistance($clusterRun['cluster3_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster3_price_per_1000'], $salesPricePer1000);
+                                $m = array($m1, $m2, $m3);
+                                $mMin = min($m);
+                                $mMax = max($m);
+                                $mMinIndex = array_search($mMin, $m);
+                                if($mMin == $m1) {
+                                    $clusterRun['cluster1'] += 1;
+                                    $clusterRun['cluster1_sold'] += $salesTotalSold;
+                                    $clusterRun['cluster1_price'] += $salesPrice;
+                                    $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
+                                    $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
+                                } else if($mMin == $m2) {
+                                    $clusterRun['cluster2'] += 1;
+                                    $clusterRun['cluster2_sold'] += $salesTotalSold;
+                                    $clusterRun['cluster2_price'] += $salesPrice;
+                                    $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
+                                    $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
+                                } else if($mMin == $m3) {
+                                    $clusterRun['cluster3'] += 1;
+                                    $clusterRun['cluster3_sold'] += $salesTotalSold;
+                                    $clusterRun['cluster3_price'] += $salesPrice;
+                                    $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
+                                    $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
+                                }
+                                $nearestCluster = $mMinIndex + 1;
+                                $withinClassVariation = $mMin;
+                                $dataSales = array(
+                                    "id" => $salesId,
+                                    "name" => $salesName,
+                                    "total_sold" => $salesTotalSold,
+                                    "total_sold_per_1000" => $salesTotalSoldPer1000,
+                                    "price" => $salesPrice,
+                                    "price_per_1000" => $salesPrice / 1000,
+                                    "unit" => $salesUnit,
+                                    "m1" => $m1,
+                                    "m2" => $m2,
+                                    "m3" => $m3,
+                                    "mMin" => $mMin,
+                                    "mMinIndex" => $mMinIndex,
+                                    "mMax" => $mMax,
+                                    "mMaxIndex" => $mMaxIndex,
+                                    "nearest_cluster" => $nearestCluster,
+                                    "within_class_variation" => $withinClassVariation
+                                );
+                                array_push($dataSalesCluster, $dataSales);
+                            }
+                            $newRasio = $beetweenClassVariation / $totalWithinClassVariation;
+                            // echo "<pre>";
+                            // echo "Total Data : " . $totalData . "<br>";
+                            // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                            // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                            // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                            // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                            // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                            // echo "Rasio : " . $rasio . "<br>";
+                            // echo "New Rasio : " . $newRasio . "<br>";
+                            // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                            // echo "</pre>";
+                            $clusterIteration += 1;
+                            $totalCluster1 = 0;
+                            $totalCluster2 = 0;
+                            $totalCluster3 = 0;
+                            while ($newRasio > $rasio OR $clusterIteration < 20) {
+                                $bw1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster2_price_per_1000']);
+                                $bw2 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
+                                $bw3 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster2_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
+                                $beetweenClassVariation = ($bw1 + $bw2 + $bw3);
+                                $clusterRun['cluster1'] = 0;
+                                $clusterRun['cluster2'] = 0;
+                                $clusterRun['cluster3'] = 0;
+                                $dataSalesCluster = array();
+                                foreach ($salesCluster as $key => $value) {
                                     $salesId = $salesAll[$key]['id'];
                                     $salesName = $salesAll[$key]['name'];
                                     $salesTotalSold = $salesAll[$key]['total_sold'];
@@ -252,29 +424,42 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                     $salesPrice = $salesAll[$key]['price'];
                                     $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
                                     $salesUnit = $salesAll[$key]['unit'];
-                                    $m1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[0]['price_per_1000'], $salesPricePer1000);
-                                    $m2 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[1]['price_per_1000'], $salesPricePer1000);
-                                    $m3 = euclideanDistance($randomSales[2]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[2]['price_per_1000'], $salesPricePer1000);
+                                    $m1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster1_price_per_1000'], $salesPricePer1000);
+                                    $m2 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster2_price_per_1000'], $salesPricePer1000);
+                                    $m3 = euclideanDistance($clusterRun['cluster3_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster3_price_per_1000'], $salesPricePer1000);
                                     $m = array($m1, $m2, $m3);
                                     $mMin = min($m);
                                     $mMax = max($m);
                                     $mMinIndex = array_search($mMin, $m);
                                     if($mMin == $m1) {
                                         $clusterRun['cluster1'] += 1;
+                                        $clusterRun['cluster1_sold'] += $salesTotalSold;
+                                        $clusterRun['cluster1_price'] += $salesPrice;
+                                        $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
+                                        $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
+                                        $totalCluster1 = $totalCluster1 + ($salesTotalSoldPer1000 * $salesPricePer1000);
                                     } else if($mMin == $m2) {
                                         $clusterRun['cluster2'] += 1;
+                                        $clusterRun['cluster2_sold'] += $salesTotalSold;
+                                        $clusterRun['cluster2_price'] += $salesPrice;
+                                        $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
+                                        $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
+                                        $totalCluster2 = $totalCluster2 + ($salesTotalSoldPer1000 * $salesPricePer1000);
                                     } else if($mMin == $m3) {
                                         $clusterRun['cluster3'] += 1;
+                                        $clusterRun['cluster3_sold'] += $salesTotalSold;
+                                        $clusterRun['cluster3_price'] += $salesPrice;
+                                        $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
+                                        $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
+                                        $totalCluster3 = $totalCluster3 + ($salesTotalSoldPer1000 * $salesPricePer1000);
                                     }
-                                    $mMaxIndex = array_search($mMax, $m);
-                                    $nearestCluster = $mMin;
-                                    $withinClassVariation = pow($nearestCluster, 2);
-                                    $totalWithinClassVariation += $withinClassVariation;
+                                    $nearestCluster = $mMinIndex + 1;
+                                    $withinClassVariation = $mMin;
                                     $dataSales = array(
                                         "id" => $salesId,
                                         "name" => $salesName,
                                         "total_sold" => $salesTotalSold,
-                                        "total_sold_per_1000" => $salesTotalSold / 1000,
+                                        "total_sold_per_1000" => $salesTotalSoldPer1000,
                                         "price" => $salesPrice,
                                         "price_per_1000" => $salesPrice / 1000,
                                         "unit" => $salesUnit,
@@ -286,67 +471,183 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                         "mMax" => $mMax,
                                         "mMaxIndex" => $mMaxIndex,
                                         "nearest_cluster" => $nearestCluster,
-                                        "within_class_variation" => $withinClassVariation
+                                        "within_class_variation" => $withinClassVariation,
+                                        "iteration" => $clusterIteration,
                                     );
-                                    array_push($salesCluster, $dataSales);
-                                } 
-                                $rasio = $beetweenClassVariation / $totalWithinClassVariation;
-                            } while($clusterRepeat == true);
-                            echo "<pre>";
-                            echo "Total Data : " . $totalData . "<br>";
-                            echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
-                            echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
-                            echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
-                            echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
-                            echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
-                            echo "Rasio : " . $rasio . "<br>";
-                            echo "Cluster Iteration : " . $clusterIteration . "<br>";
-                            print_r($salesCluster);
-                            echo "</pre>";
-                            $clusterRun = array(
-                                "cluster1" => 0,
-                                "cluster2" => 0,
-                                "cluster3" => 0
-                            );
-                            do {
-                                foreach ($salesAll as $key => $value) {
-                                    $salesId = $salesAll[$key]['id'];
-                                    $salesName = $salesAll[$key]['name'];
-                                    $salesTotalSold = $salesAll[$key]['total_sold'];
-                                    $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
-                                    $salesPrice = $salesAll[$key]['price'];
-                                    $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
-                                    $salesUnit = $salesAll[$key]['unit'];
-                                    $m1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[0]['price_per_1000'], $salesPricePer1000);
-                                    $m2 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[1]['price_per_1000'], $salesPricePer1000);
-                                    $m3 = euclideanDistance($randomSales[2]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[2]['price_per_1000'], $salesPricePer1000);
-                                    $m = array($m1, $m2, $m3);
-                                    $mMin = min($m);
-                                    $mMax = max($m);
-                                    $mMinIndex = array_search($mMin, $m);
-                                    if($mMin == $m1) {
-                                        $clusterRun['cluster1'] += 1;
-                                    } else if($mMin == $m2) {
-                                        $clusterRun['cluster2'] += 1;
-                                    } else if($mMin == $m3) {
-                                        $clusterRun['cluster3'] += 1;
-                                    }
-                                    $mMaxIndex = array_search($mMax, $m);
-                                    $nearestCluster = $mMin;
-                                    $withinClassVariation = pow($nearestCluster, 2);
-                                    $totalWithinClassVariation += $withinClassVariation;
+                                    array_push($dataSalesCluster, $dataSales);
                                 }
-                                $rasio = $beetweenClassVariation / $totalWithinClassVariation;
-                            } while($clusterRepeat == true);
-                            echo "<pre>";
-                            echo "Total Data : " . $totalData . "<br>";
-                            echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
-                            echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
-                            echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
-                            echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
-                            echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
-                            echo "Rasio : " . $rasio . "<br>";
-                            echo "</pre>";
+                                $newRasio = $beetweenClassVariation / $totalWithinClassVariation;
+                                $rasio = $newRasio;
+                                $clusterIteration += 1;
+                                if ($clusterIteration == 20) {
+                                    echo "<pre>";
+                                    echo "Total Data : " . $totalData . "<br>";
+                                    echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                                    echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                                    echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                                    echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                                    echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                                    echo "Rasio : " . $rasio . "<br>";
+                                    echo "New Rasio : " . $newRasio . "<br>";
+                                    echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                                    echo "Total Cluster 1 : " . $totalCluster1 . "<br>";
+                                    echo "Total Cluster 2 : " . $totalCluster2 . "<br>";
+                                    echo "Total Cluster 3 : " . $totalCluster3 . "<br>";
+                                    $highest = max($totalCluster1, $totalCluster2, $totalCluster3);
+                                    $lowest = min($totalCluster1, $totalCluster2, $totalCluster3);
+                                    $middle = $totalCluster1 + $totalCluster2 + $totalCluster3 - $highest - $lowest;
+                                    echo "highest : " . $highest . "<br>";
+                                    echo "middle : " . $middle . "<br>";
+                                    echo "lowest : " . $lowest . "<br>";
+
+                                    $clusterRun['lowest'] = $lowest;
+                                    $clusterRun['middle'] = $middle;
+                                    $clusterRun['highest'] = $highest;
+
+                                    $clusterCategories = array("Tinggi", "Sedang", "Rendah");
+                                    $clusterValues = array($totalCluster1, $totalCluster2, $totalCluster3);
+
+                                    // Assigning categories to clusters based on highest, middle, and lowest values
+                                    for ($i = 0; $i < 3; $i++) {
+                                        if ($clusterValues[$i] == $highest) {
+                                            $clusterRun["cluster" . ($i + 1) . "_category"] = $clusterCategories[0];
+                                        } else if ($clusterValues[$i] == $middle) {
+                                            $clusterRun["cluster" . ($i + 1) . "_category"] = $clusterCategories[1];
+                                        } else if ($clusterValues[$i] == $lowest) {
+                                            $clusterRun["cluster" . ($i + 1) . "_category"] = $clusterCategories[2];
+                                        }
+                                    }
+                                    print_r($dataSalesCluster);
+                                    echo "</pre>";
+                                    // Memeriksa apakah data sudah ada dalam tabel
+                                    $sql_check = "SELECT COUNT(*) as count FROM clustering";
+                                    $result_check = $conn->query($sql_check);
+                                    $row_check = $result_check->fetch_assoc();
+                                    $count = $row_check["count"];
+
+                                    // Mengatur nilai untuk setiap cluster
+                                    $clusters = array(
+                                        'cluster1' => array(
+                                            'id' => 1,
+                                            'cluster' => $clusterRun['cluster1'],
+                                            'cluster_sold' => $clusterRun['cluster1_sold'],
+                                            'cluster_price' => $clusterRun['cluster1_price'],
+                                            'cluster_sold_per_1000' => $clusterRun['cluster1_sold_per_1000'],
+                                            'cluster_price_per_1000' => $clusterRun['cluster1_price_per_1000'],
+                                            'category' => $clusterRun['cluster1_category'],
+                                            'lowest' => $clusterRun['lowest'],
+                                            'middle' => $clusterRun['middle'],
+                                            'highest' => $clusterRun['highest']
+                                        ),
+                                        'cluster2' => array(
+                                            'id' => 2,
+                                            'cluster' => $clusterRun['cluster2'],
+                                            'cluster_sold' => $clusterRun['cluster2_sold'],
+                                            'cluster_price' => $clusterRun['cluster2_price'],
+                                            'cluster_sold_per_1000' => $clusterRun['cluster2_sold_per_1000'],
+                                            'cluster_price_per_1000' => $clusterRun['cluster2_price_per_1000'],
+                                            'category' => $clusterRun['cluster2_category'],
+                                            'lowest' => $clusterRun['lowest'],
+                                            'middle' => $clusterRun['middle'],
+                                            'highest' => $clusterRun['highest']
+                                        ),
+                                        'cluster3' => array(
+                                            'id' => 3,
+                                            'cluster' => $clusterRun['cluster3'],
+                                            'cluster_sold' => $clusterRun['cluster3_sold'],
+                                            'cluster_price' => $clusterRun['cluster3_price'],
+                                            'cluster_sold_per_1000' => $clusterRun['cluster3_sold_per_1000'],
+                                            'cluster_price_per_1000' => $clusterRun['cluster3_price_per_1000'],
+                                            'category' => $clusterRun['cluster3_category'],
+                                            'lowest' => $clusterRun['lowest'],
+                                            'middle' => $clusterRun['middle'],
+                                            'highest' => $clusterRun['highest']
+                                        )
+                                    );
+
+                                    // Memasukkan atau memperbarui data di tabel
+                                    foreach ($clusters as $cluster => $values) {
+                                        if ($count > 0) {
+                                            // UPDATE jika data sudah ada dalam tabel
+                                            $sql_update = "UPDATE clustering SET 
+                                                cluster='{$values['cluster']}',
+                                                cluster_sold='{$values['cluster_sold']}',
+                                                cluster_price='{$values['cluster_price']}',
+                                                cluster_sold_per_1000='{$values['cluster_sold_per_1000']}',
+                                                cluster_price_per_1000='{$values['cluster_price_per_1000']}',
+                                                category='{$values['category']}',
+                                                lowest='{$values['lowest']}',
+                                                middle='{$values['middle']}',
+                                                highest='{$values['highest']}' WHERE id='{$values['id']}'";
+                                            $conn->query($sql_update);
+                                        } else {
+                                            // INSERT jika data belum ada dalam tabel
+                                            $sql_insert = "INSERT INTO clustering 
+                                                            (id, cluster, cluster_sold, cluster_price, cluster_sold_per_1000, cluster_price_per_1000, category, lowest, middle, highest)
+                                                            VALUES 
+                                                            ('{$values['id']}','{$values['cluster']}', '{$values['cluster_sold']}', '{$values['cluster_price']}', '{$values['cluster_sold_per_1000']}', '{$values['cluster_price_per_1000']}', '{$values['category']}', '{$values['lowest']}', '{$values['middle']}', '{$values['highest']}')";
+
+                                            $conn->query($sql_insert);
+                                        }
+                                    }
+                                    foreach ($dataSalesCluster as $key => $values) {
+                                        $id_item = $values['id'];
+                                        $name = $values['name'];
+                                        $total_sold = $values['total_sold'];
+                                        $total_sold_per_1000 = $values['total_sold_per_1000'];
+                                        $price = $values['price'];
+                                        $price_per_1000 = $values['price_per_1000'];
+                                        $unit = $values['unit'];
+                                        $m1 = $values['m1'];
+                                        $m2 = $values['m2'];
+                                        $m3 = $values['m3'];
+                                        $mMin = $values['mMin'];
+                                        $mMax = $values['mMax'];
+                                        $mMinIndex = $values['mMinIndex'];
+                                        $mMaxIndex = $values['mMaxIndex'];
+                                        $nearest = $values['nearest_cluster'];
+                                        $within_class_variation = $values['within_class_variation'];
+                                        $iteration = $values['iteration'];
+                                        // Memeriksa apakah data sudah ada dalam tabel
+                                        $sql_check = "SELECT * FROM sales_cluster WHERE id_item='{$id_item}'";
+                                        $result_check = $conn->query($sql_check);
+                                        if ($result_check->num_rows > 0) {
+                                            // UPDATE jika data sudah ada dalam tabel
+                                            $sql_update = "UPDATE sales_cluster SET 
+                                                            name='{$name}',
+                                                            total_sold='{$total_sold}',
+                                                            total_sold_per_1000='{$total_sold_per_1000}',
+                                                            price='{$price}',
+                                                            price_per_1000='{$price_per_1000}',
+                                                            unit='{$unit}',
+                                                            m1='{$m1}',
+                                                            m2='{$m2}',
+                                                            m3='{$m3}',
+                                                            mMin='{$mMin}',
+                                                            mMax='{$mMax}',
+                                                            mMinIndex='{$mMinIndex}',
+                                                            mMaxIndex='{$mMaxIndex}',
+                                                            nearest_cluster='{$nearest}',
+                                                            within_class_variation='{$within_class_variation}',
+                                                            iteration='{$iteration}' WHERE id_item='{$id_item}'";
+
+                                            $conn->query($sql_update);
+                                        } else {
+                                            // INSERT jika data belum ada dalam tabel
+                                            $sql_insert = "INSERT INTO sales_cluster 
+                                                            (id_item, name, total_sold, total_sold_per_1000, price, price_per_1000, unit, m1, m2, m3, mMin, mMax, mMinIndex, mMaxIndex, nearest_cluster, within_class_variation, iteration)
+                                                            VALUES 
+                                                            ('{$id_item}','{$name}', '{$total_sold}', '{$total_sold_per_1000}', '{$price}', '{$price_per_1000}', '{$unit}', '{$m1}', '{$m2}', '{$m3}', '{$mMin}', '{$mMax}', '{$mMinIndex}', '{$mMaxIndex}', '{$nearest}', '{$within_class_variation}', '{$iteration}')";
+
+                                            $conn->query($sql_insert);
+                                        }
+                                    }
+                                    break;
+                                }
+                                $totalCluster1 = 0;
+                                $totalCluster2 = 0;
+                                $totalCluster3 = 0;
+                            }
                         }
                         ?>
                         </div>
