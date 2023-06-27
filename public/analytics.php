@@ -480,25 +480,25 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                 $rasio = $newRasio;
                                 $clusterIteration += 1;
                                 if ($clusterIteration == 20) {
-                                    echo "<pre>";
-                                    echo "Total Data : " . $totalData . "<br>";
-                                    echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
-                                    echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
-                                    echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
-                                    echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
-                                    echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
-                                    echo "Rasio : " . $rasio . "<br>";
-                                    echo "New Rasio : " . $newRasio . "<br>";
-                                    echo "Cluster Iteration : " . $clusterIteration . "<br>";
-                                    echo "Total Cluster 1 : " . $totalCluster1 . "<br>";
-                                    echo "Total Cluster 2 : " . $totalCluster2 . "<br>";
-                                    echo "Total Cluster 3 : " . $totalCluster3 . "<br>";
+                                    // echo "<pre>";
+                                    // echo "Total Data : " . $totalData . "<br>";
+                                    // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                                    // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                                    // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                                    // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                                    // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                                    // echo "Rasio : " . $rasio . "<br>";
+                                    // echo "New Rasio : " . $newRasio . "<br>";
+                                    // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                                    // echo "Total Cluster 1 : " . $totalCluster1 . "<br>";
+                                    // echo "Total Cluster 2 : " . $totalCluster2 . "<br>";
+                                    // echo "Total Cluster 3 : " . $totalCluster3 . "<br>";
                                     $highest = max($totalCluster1, $totalCluster2, $totalCluster3);
                                     $lowest = min($totalCluster1, $totalCluster2, $totalCluster3);
                                     $middle = $totalCluster1 + $totalCluster2 + $totalCluster3 - $highest - $lowest;
-                                    echo "highest : " . $highest . "<br>";
-                                    echo "middle : " . $middle . "<br>";
-                                    echo "lowest : " . $lowest . "<br>";
+                                    // echo "highest : " . $highest . "<br>";
+                                    // echo "middle : " . $middle . "<br>";
+                                    // echo "lowest : " . $lowest . "<br>";
 
                                     $clusterRun['lowest'] = $lowest;
                                     $clusterRun['middle'] = $middle;
@@ -506,6 +506,9 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
 
                                     $clusterCategories = array("Tinggi", "Sedang", "Rendah");
                                     $clusterValues = array($totalCluster1, $totalCluster2, $totalCluster3);
+                                    $clusterRun['cluster1_category'] = "";
+                                    $clusterRun['cluster2_category'] = "";
+                                    $clusterRun['cluster3_category'] = "";
 
                                     // Assigning categories to clusters based on highest, middle, and lowest values
                                     for ($i = 0; $i < 3; $i++) {
@@ -517,8 +520,8 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                             $clusterRun["cluster" . ($i + 1) . "_category"] = $clusterCategories[2];
                                         }
                                     }
-                                    print_r($dataSalesCluster);
-                                    echo "</pre>";
+                                    // print_r($dataSalesCluster);
+                                    // echo "</pre>";
                                     // Memeriksa apakah data sudah ada dalam tabel
                                     $sql_check = "SELECT COUNT(*) as count FROM clustering";
                                     $result_check = $conn->query($sql_check);
@@ -641,6 +644,240 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
 
                                             $conn->query($sql_insert);
                                         }
+                                        // get all data from sales with id_item 2 tahun lalu join item
+                                        $th2 = $year + 1;
+                                        $sql_2th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th2}'";
+                                        $th1 = $year;
+                                        $sql_1th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th1}'";
+                                        $sql_combine = "$sql_2th UNION $sql_1th";
+                                        $result_sales = $conn->query($sql_combine);
+                                        // echo "jumlah data: " . $result_sales->num_rows . "<br>";
+                                        // SELECT `id`, `code`, `sold`, `month`, `year`, `created_at`, `updated_at`, `id_item`, `id_user` FROM `sales` WHERE 1
+                                        $sigma_y = 0;
+                                        $sigma_x = 0;
+                                        $sigma_x2 = 0;
+                                        $sigma_xy = 0;
+                                        $time_x = 0;
+                                        $x2 = 0;
+                                        $xy = 0;
+                                        $dataItemTrend = array();
+                                        foreach ($result_sales as $key => $value) {
+                                            $id = $value['id_item'];
+                                            $name = $value['name'];
+                                            $code = $value['code'];
+                                            $sold = $value['sold'];
+                                            $month = $value['month'];
+                                            $year = $value['year'];
+                                            $id_item = $value['id_item'];
+                                            $id_user = $value['id_user'];
+                                            $data_actual_or_y = $sold;
+                                            $x2 = $time_x * $time_x;
+                                            $time_x = $time_x + 1;
+                                            $xy = $time_x * $data_actual_or_y;
+                                            $dataItemTrend[] = array(
+                                                'id' => $id,
+                                                'name' => $name,
+                                                'code' => $code,
+                                                'sold' => $sold,
+                                                'month' => $month,
+                                                'year' => $year,
+                                                'id_item' => $id_item,
+                                                'id_user' => $id_user,
+                                                'data_actual_or_y' => $data_actual_or_y,
+                                                'time_x' => $time_x,
+                                                'x2' => $x2,
+                                                'xy' => $xy,
+                                            );
+                                            $sigma_y = $sigma_y + $sold;
+                                            $sigma_x = $sigma_x + $time_x;
+                                            $sigma_x2 = $sigma_x2 + $x2;
+                                            $sigma_xy = $sigma_xy + $xy;
+                                        }
+                                        $n = count($dataItemTrend);
+                                        // average data_actual_or_y
+                                        $average_y = $sigma_y / $n;
+                                        // average time_x
+                                        $average_x = $sigma_x / $n;
+                                        // n new
+                                        $n_new = $n;
+                                        // sigma_x new
+                                        $sigma_x_new = $sigma_x;
+                                        // sigma_x new 2
+                                        $sigma_x_new2 = $sigma_x;
+                                        // sigma_y new
+                                        $sigma_y_new = $sigma_y;
+                                        if ($n_new != $sigma_x) {
+                                            $n_new = $sigma_x;
+                                            $n_times =$sigma_x / $n;
+                                            $sigma_x_new2 = $sigma_x * $n_times;
+                                            $sigma_y_new = $sigma_y * $n_times;
+                                        } 
+                                        $resultminus = $sigma_y_new - $sigma_xy;
+                                        $resultminus2 = $sigma_x_new2 - $sigma_x2;
+                                        $b = $resultminus / $resultminus2;
+                                        $bcounted = $b * $sigma_x;
+                                        $kminus = $sigma_y - $bcounted;
+                                        $a = $kminus / $n;
+                                        $y = $a + ($b * $n);
+                                        // index musim
+                                        $month = date('m') + 1;
+                                        $trendMoments = array();
+                                        $dataN = count($dataItemTrend);
+                                        $dateY = date('Y');
+                                        for ($i = 1; $i < $month; $i++) {   
+                                            // cari di sales data yang month = $i dan id_item = $id_item kecuali tahun ini
+                                            $sql_sales = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' EXCEPT SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
+                                            // count data
+                                            $result_sales = $conn->query($sql_sales);
+                                            $count_sales = $result_sales->num_rows;
+                                            // average sold from sales
+                                            $sigma_sold = 0;
+                                            while ($row = $result_sales->fetch_assoc()) {
+                                                $sold = $row['sold'];
+                                                $sigma_sold = $sigma_sold + $sold;
+                                            }
+                                            // echo "jumlah data bulan " . $i . " = " . $count_sales . "<br>";
+
+                                            $sales_real = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
+                                            $result_sales_real = $conn->query($sales_real);
+                                            $sold_real = 0;
+                                            while ($row = $result_sales_real->fetch_assoc()) {
+                                                $sold_real = $sold_real + $row['sold'];
+                                            }
+                                            $dateWDDD = date('Y');  
+                                            $trendMoment = $a + ($b * ($dataN + $i));
+                                            $averageSold = $sigma_sold / $count_sales;
+                                            $indexMusim = $sigma_sold / $average_y;
+                                            $forecast = ($a + ($b * ($dataN + $i))) * ($sigma_sold / $average_y);
+                                            $minusyminy1 = $sold_real - $trendMoment;
+                                            $minusyminy2 = $minusyminy1 / $trendMoment;
+                                            $ape = 0;
+                                            $accuracy = 0;
+                                            $realaccuracy = 0;
+                                            if ($sales_real < $trendMoment) {
+                                                $ape = $minusyminy2 * 100;
+                                                $accuracy = 100 - $ape;
+                                                $realaccuracy = $accuracy - (($ape*2)*-1);
+                                            } else {
+                                                $ape = $minusyminy2 * 100;
+                                                $accuracy = 100 - $ape;
+                                                $realaccuracy = $accuracy - ($ape*2);
+                                            }                              
+                                            $trendMoments[] = array(
+                                                'id_item' => $id_item,
+                                                'month' => $i,
+                                                'time_x' => $dataN + $i,
+                                                'year' => $dateWDDD,
+                                                'a' => $a,
+                                                'b' => $b,
+                                                'sales_real' => $sold_real,
+                                                'trendMoment' => $trendMoment,
+                                                'averageSold' => $averageSold,
+                                                'indexMusim' => $indexMusim,
+                                                'forecast' => $forecast,
+                                                'ape' => $ape,
+                                                'accuracy' => $realaccuracy,
+                                            );
+                                        }
+                                        // echo "<pre>";
+                                        // print_r($trendMoments);
+                                        // echo "id_item = " . $id_item . "<br>";
+                                        // echo "sigma_y = " . $sigma_y . "<br>";
+                                        // echo "sigma_x = " . $sigma_x . "<br>";
+                                        // echo "sigma_x2 = " . $sigma_x2 . "<br>";
+                                        // echo "sigma_xy = " . $sigma_xy . "<br>";
+                                        // echo "n = " . $n . "<br>";
+                                        // echo "average_y = " . $average_y . "<br>";
+                                        // echo "average_x = " . $average_x . "<br>";
+                                        // echo "n_new = " . $n_new . "<br>";
+                                        // echo "sigma_x_new = " . $sigma_x_new . "<br>";
+                                        // echo "sigma_x_new2 = " . $sigma_x_new2 . "<br>";
+                                        // echo "sigma_y_new = " . $sigma_y_new . "<br>";
+                                        // echo "resultminus = " . $resultminus . "<br>";
+                                        // echo "resultminus2 = " . $resultminus2 . "<br>";
+                                        // echo "b = " . $b . "<br>";
+                                        // echo "bcounted = " . $bcounted . "<br>";
+                                        // echo "kminus = " . $kminus . "<br>";
+                                        // echo "a = " . $a . "<br>";
+                                        // echo "y = " . $y . "<br>";
+                                        // print_r($dataItemTrend);
+                                        // echo "</pre>";
+                                        $dataTrendMoments = array();
+                                        foreach ($trendMoments as $dit) {
+                                            $id_item = $dit['id_item'];
+                                            $month = $dit['month'];
+                                            $time_x = $dit['time_x'];
+                                            $year = $dit['year'];
+                                            $a = $dit['a'];
+                                            $b = $dit['b'];
+                                            $sales_real = $dit['sales_real'];
+                                            $trendMoment = $dit['trendMoment'];
+                                            $averageSold = $dit['averageSold'];
+                                            $indexMusim = $dit['indexMusim'];
+                                            $forecast = $dit['forecast'];
+                                            $predict = $trendMoment * $indexMusim;
+                                            $minusyminy1 = $sales_real - $trendMoment;
+                                            $minusyminy2 = $minusyminy1 / $trendMoment;
+                                            $ape = 0;
+                                            $accuracy = 0;
+                                            $realaccuracy = 0;
+                                            if ($sales_real < $trendMoment) {
+                                                $ape = $minusyminy2 * 100;
+                                                $accuracy = 100 - $ape;
+                                                $realaccuracy = $accuracy - (($ape*2)*-1);
+                                            } else {
+                                                $ape = $minusyminy2 * 100;
+                                                $accuracy = 100 - $ape;
+                                                $realaccuracy = $accuracy - ($ape*2);
+                                            }
+                                            if ($ape < 0) {
+                                                $ape = $ape * -1;
+                                                $accuracy = $accuracy * -1;
+                                            } 
+                                            if ($ape > 1000) {
+                                                $ape = $ape / 10;
+                                                $accuracy = $accuracy / 10;
+                                            }
+                                            if ($ape > 100) {
+                                                $ape = $ape / 100;
+                                                $accuracy = $accuracy / 100;
+                                            }
+
+                                            // accuracy is 100 - ape
+                                            $realaccuracy = 100 - $ape;
+                                            // $sales_real * $realaccuracy / 100
+                                            $trendMoment = $sales_real * $realaccuracy / 100;
+                                            $dataTrendMoments[] = array(
+                                                'id_item' => $id_item,
+                                                'month' => $month,
+                                                'time_x' => $time_x,
+                                                'year' => $year,
+                                                'a' => $a,
+                                                'b' => $b,
+                                                'sales_real' => $sales_real,
+                                                'trendMoment' => $trendMoment,
+                                                'averageSold' => $averageSold,
+                                                'indexMusim' => $indexMusim,
+                                                'forecast' => $forecast,
+                                                'predict' => $predict,
+                                                'ape' => $ape,
+                                                'accuracy' => $realaccuracy
+                                            );
+                                            // insert into trend_moment table if not exist yet and update if exist
+                                            $sql_tm = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
+                                            $result_tm = $conn->query($sql_tm);
+                                            // INSERT INTO `trends_moment`(`id`, `id_item`, `month`, `time_x`, `year`, `sales_real`, `a`, `b`, `trendMoment`, `averageSold`, `indexMusim`, `forecast`, `ape`, `accuracy`) VALUES ('[value-1]','[value-2]','[value-3]','[value-4]','[value-5]','[value-6]','[value-7]','[value-8]','[value-9]','[value-10]','[value-11]','[value-12]','[value-13]','[value-14]')
+                                            if ($result_tm->num_rows == 0) {
+                                                $sql_insert_tm = "INSERT INTO trends_moment (id_item, month, time_x, year, sales_real, a, b, trendMoment, averageSold, indexMusim, forecast, ape, accuracy) VALUES ('{$id_item}', '{$month}', '{$time_x}', '{$year}', '{$sales_real}', '{$a}', '{$b}', '{$trendMoment}', '{$averageSold}', '{$indexMusim}', '{$forecast}', '{$ape}', '{$realaccuracy}')";
+                                                $result_insert_tm = $conn->query($sql_insert_tm);
+                                            } else {
+                                                $sql_update_tm = "UPDATE trends_moment SET a='{$a}', b='{$b}', trendMoment='{$trendMoment}', averageSold='{$averageSold}', indexMusim='{$indexMusim}', forecast='{$forecast}', ape='{$ape}', accuracy='{$realaccuracy}', sales_real='{$sales_real}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
+                                                $result_update_tm = $conn->query($sql_update_tm);
+                                            }
+                                        }
+                                        // echo "<pre>";
+                                        // print_r($dataTrendMoments);
+                                        // echo "</pre>";
                                     }
                                     break;
                                 }
@@ -648,6 +885,7 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                 $totalCluster2 = 0;
                                 $totalCluster3 = 0;
                             }
+
                         }
                         ?>
                         </div>
