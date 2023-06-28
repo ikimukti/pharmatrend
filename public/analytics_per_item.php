@@ -6,44 +6,49 @@ if(!isset($_SESSION["id"])){
     
     die();
 }
+if(!isset($_GET["search"])){
+    ob_start();
+    header("Location: analytics_per_item.php?page=1&search=");
+    die();
+}
 require_once("config.php");
-// item data with pagination and descending order and sales data acumulation
+// item data with pagination and descending order
 $limit = 10;
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
 $start = ($page > 1) ? ($page * $limit) - $limit : 0;
-// sql untuk mengambil i.id, i.code, i.name, i.price, jumlah dari sales yang terjadi pada item tersebut berdasarkan id_item, kemudian hitung jumlah bulan di tahun tersebut yang terjadi pada sales berdasarkan kolom month dan total_month_last_year = jumlah month year pada sales 2 tahun terakhir
-$items = mysqli_query($conn, "SELECT i.id, i.code, i.name, i.price, 
-       SUM(s.sold) AS total_sales, 
-       COUNT(DISTINCT CONCAT(s.month, s.year)) AS total_month, 
-       COALESCE(t.total_month_last_year, 0) AS total_month_last_year
-FROM items i 
-LEFT JOIN sales s ON i.id = s.id_item 
-LEFT JOIN (
-   SELECT s1.id_item, COUNT(DISTINCT CONCAT(s1.month, s1.year)) AS total_month_last_year
-   FROM sales s1
-   WHERE (s1.year >= YEAR(CURDATE()) - 3 AND s1.year <= YEAR(CURDATE()) - 1) -- Tahun ke-3, ke-2, dan ke-1 sejak saat ini
-      OR (s1.year = YEAR(CURDATE()) AND s1.month <= MONTH(CURDATE())) -- Bulan-bulan di tahun ini hingga bulan saat ini
-   GROUP BY s1.id_item
-   HAVING COUNT(DISTINCT CONCAT(s1.month, s1.year)) >= 12
-) AS t ON i.id = t.id_item
-GROUP BY i.id 
-ORDER BY total_sales DESC 
-LIMIT $start, $limit;
-
-
-");
-$items_all = mysqli_query($conn, "SELECT * FROM items");
+$items = mysqli_query($conn, "SELECT i.code, i.name, i.unit, i.price, i.id AS id_item, s.id AS id_sales, s.nearest_cluster AS cluster, c.category AS category
+FROM items AS i
+JOIN sales_cluster AS s ON i.id = s.id_item
+JOIN clustering AS c ON s.nearest_cluster = c.id
+ORDER BY i.id DESC
+LIMIT $start, $limit");
+$items_all = mysqli_query($conn, "SELECT i.code, i.name, i.unit, i.price, i.id AS id_item, s.id AS id_sales, s.nearest_cluster AS cluster, c.category AS category
+FROM items AS i
+JOIN sales_cluster AS s ON i.id = s.id_item
+JOIN clustering AS c ON s.nearest_cluster = c.id
+ORDER BY i.id DESC");
 $total = mysqli_num_rows($items_all);
 $pages = ceil($total / $limit);
 $first_page = 1;
-$previous_page = $page - 1;
+$prev_page = $page - 1;
 $next_page = $page + 1;
 $no = $start + 1;
 // search item
-if(isset($_GET  ["search"])){
+if(isset($_GET["search"])){
     $search = $_GET["search"];
-    $items = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' ORDER BY id DESC LIMIT $start, $limit");
-    $items_all = mysqli_query($conn, "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%'");
+    $items = mysqli_query($conn, "SELECT i.code, i.name, i.unit, i.price, i.id AS id_item, s.id AS id_sales, s.nearest_cluster AS cluster, c.category AS category
+    FROM items AS i
+    JOIN sales_cluster AS s ON i.id = s.id_item
+    JOIN clustering AS c ON s.nearest_cluster = c.id
+    WHERE i.name LIKE '%$search%' OR i.code LIKE '%$search%'
+    ORDER BY i.id DESC
+    LIMIT $start, $limit");
+    $items_all = mysqli_query($conn, "SELECT i.code, i.name, i.unit, i.price, i.id AS id_item, s.id AS id_sales, s.nearest_cluster AS cluster, c.category AS category
+    FROM items AS i
+    JOIN sales_cluster AS s ON i.id = s.id_item
+    JOIN clustering AS c ON s.nearest_cluster = c.id
+    WHERE i.name LIKE '%$search%' OR i.code LIKE '%$search%'
+    ORDER BY i.id DESC");
     $total = mysqli_num_rows($items_all);
     $pages = ceil($total / $limit);
     $previous = $page - 1;
@@ -88,10 +93,11 @@ if(isset($_GET  ["search"])){
                         <div>
                             <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
                             <span class="text-gray-700">/</span>
-                            <a href="analytics.php" class="text-gray-700 hover:text-gray-950">Analytics</a>
+                            <a href="analytics_per_item.php" class="text-gray-700 hover:text-gray-950">Analytics</a>
                             <span class="text-gray-700">/</span>
                             <!-- page -->
-                            <a href="analytics_per_item.php" class="text-blue-400 hover:text-blue-600">Analytics Per Item</a>
+                            <a href="detail_analytics_per_item.php?page=<?php echo $page; ?>"
+                                class="text-gray-700 hover:text-gray-950"><?php echo $page; ?></a>
                         </div>
                         <button class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" onclick="window.history.back();">
                             <i class="fas fa-arrow-left"></i>
@@ -105,94 +111,101 @@ if(isset($_GET  ["search"])){
                             <!-- flex row -->
                             <div class="flex flex-row items-center justify-between">
                                 <div class="flex flex-row items-center gap-2">
-                                    <h1 class="text-2xl font-bold">Analytics Per Item</h1>  
+                                    <h1 class="text-2xl font-bold">Items</h1>
 
                                 </div>
                                 <div class="flex flex-row items-center gap-2">
-                                    <!-- <a href="sales_add_item.php"
-                                        class="bg-blue-400 text-white px-4 py-2 rounded mx-4 my-2 hover:bg-blue-600">
-                                        Add Item
-                                    </a> -->
-                                    <input type="text" name="search" id="search"
+                                    <form action="analytics_per_item.php" method="GET" class="flex flex-row items-center gap-2">
+                                        <input type="text" name="search" id="search"
                                         class="border-2 border-gray-200 rounded-md px-4 py-2 focus:outline-none focus:border-blue-400"
-                                        placeholder="Search">
-                                    <button type="button"
-                                        class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
-                                        Search
-                                    </button>
+                                        placeholder="Search" autocomplete="off" value="<?php echo isset($_GET["search"]) ? $_GET["search"] : ""; ?>">
+                                        <button type="submit"
+                                            class="bg-blue-400 text-white px-4 py-2 rounded ml-4 my-2 hover:bg-blue-600">
+                                            <i class="fas fa-search"></i>
+                                            Search
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                             <!-- table data item -->
+                                <?php
+                                    // show message 
+                                    if(isset($_SESSION["message"])){
+                                        ?>
+                                <div class="flex flex-row items-center justify-between bg-green-400 text-white px-4 py-2 rounded-md">
+                                    <p><?php echo $_SESSION["message"]; ?></p>
+                                    <button type="button" class="focus:outline-none"
+                                        onclick="this.parentElement.style.display='none'">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <?php
+                                        unset($_SESSION["message"]);
+                                    }
+                                ?>
                             <div class="w-full h-auto border-2 border-gray-200 rounded-md py-2 px-2">
                                 <table class="w-full text-left text-sm">
                                     <thead class="border-b-2 border-gray-200">
                                         <tr>
-                                            <th class="px-2 py-2">No</th>
-                                            <th class="px-2 py-2">Item Code</th>
-                                            <th class="px-2 py-2">Item Name</th>
-                                            <th class="px-2 py-2">Price</th>
-                                            <th class="px-2 py-2">Total Sales</th>
-                                            <th class="px-2 py-2">Total Month</th>
-                                            <!-- total_month_last_year -->
-                                            <th class="px-2 py-2">Total Month Last Year</th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-hashtag"></i>    
+                                                No
+                                            </th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-barcode"></i>    
+                                                Code
+                                            </th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-box"></i>    
+                                                Name
+                                            </th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-boxes"></i> 
+                                                Unit
+                                            </th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-money-bill-wave"></i>    
+                                                Price
+                                            </th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-box-open"></i>   
+                                                Category
+                                            </th>
                                             <!-- <th class="px-2 py-2">Stock</th> -->
-                                            <th class="px-2 py-2">Action</th>
+                                            <th class="px-2 py-2">
+                                                <i class="fas fa-cog"></i>    
+                                                Action
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
-                                            // $items output dari query di atas
-                                            while($item = mysqli_fetch_assoc($items)){
+                                            while($item = mysqli_fetch_array($items)){
                                         ?>
                                         <tr class="border-b-2 border-gray-200">
                                             <td class="px-2 py-2"><?php echo $no++; ?></td>
-                                            <td class="px-2 py-2"><?php echo $item["code"]; ?></td>
-                                            <td class="px-2 py-2"><?php echo $item["name"]; ?></td>
-                                            <td class="px-2 py-2">Rp. <?php echo number_format($item["price"]); ?></td>
-                                            <!-- jika total sales kosong maka tampilkan 0 -->
                                             <td class="px-2 py-2">
-                                                <?php echo $item["total_sales"] == null ? 0 : $item["total_sales"]; ?>
-                                                Pcs</td>
-                                            <!-- jika total month kosong maka tampilkan 0 -->
-                                            <td class="px-2 py-2">
-                                                <?php echo $item["total_month"] == null ? 0 : $item["total_month"]; ?>
-                                                Month</td>
-                                            <!-- total_month_last_year -->
-                                            <td class="px-2 py-2">
-                                                <?php echo $item["total_month_last_year"] == null ? 0 : $item["total_month_last_year"]; ?>
-                                                Month</td>
+                                                <a href="detail_analytics_per_item.php?id=<?php echo $item["id_item"]; ?>"
+                                                    class="text-blue-400 hover:text-blue-600">
+                                                    <?php echo $item["code"]; ?>
+                                                </a>
                                             </td>
+                                            <td class="px-2 py-2"><?php echo $item["name"]; ?></td>
+                                            <td class="px-2 py-2"><?php echo $item["unit"]; ?></td>
+                                            <td class="px-2 py-2">Rp. <?php echo number_format($item["price"]); ?></td>
+                                            <td class="px-2 py-2"><?php echo $item["category"]; ?></td>
                                             <!-- <td class="px-2 py-2"></td> -->
-                                            <td class="px-2 py-2">
-                                                <!-- <a href="edit_item.php?id=<?php echo $item["id"]; ?>"
-                                                    class="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">
-                                                    Edit
-                                                </a> -->
-                                                <a href="delete_item.php?id=<?php echo $item["id"]; ?>"
-                                                    class="bg-red-400 text-white px-4 py-2 rounded hover:bg-red-600 mr-2"
-                                                    onclick="return confirm('Are you sure you want to delete this item?');">
-                                                    Delete
+                                            <td class="px-2 py-2 space-x-2">
+                                                <a href="detail_analytics_per_item.php?id=<?php echo $item["id_item"]; ?>"
+                                                    class="bg-teal-400 text-white px-4 py-2 rounded hover:bg-teal-600">
+                                                    <i class="fas fa-chart-line"></i>
+                                                    Analytics
                                                 </a>
-                                                <!-- jika total bulan kurang dari bulan yang ada dari 3 tahun lalu maka tampilkan tombol add sales item -->
-                                                <?php
-                                                    // $monthBtn hitung bulan 2 tahun lalu
-                                                    $monthBtn = date("m") + 24;
-                                                    if($item["total_month"] <= $monthBtn){
-                                                        // Tahun sekarang
-                                                        $year = date("Y");
-                                                ?>
-                                                <a href="add_sales_per_item.php?id=<?php echo $item["id"]; ?>&year=<?php echo $year; ?>"
-                                                    class="bg-green-400 text-white px-4 py-2 rounded hover:bg-green-600 mr-2">
-                                                    Add Sales
+                                                <a href="detail_analytics_per_item_table.php?id=<?php echo $item["id_item"]; ?>"
+                                                    class="bg-pink-400 text-white px-4 py-2 rounded hover:bg-pink-600">
+                                                    <i class="fas fa-table"></i>
+                                                    Table
                                                 </a>
-                                                <?php
-                                                    }
-                                                ?>
-                                                <!-- alert delete confirm -->
-                                                <!-- <a href="restock_item.php?id="
-                                                    class="bg-green-400 text-white px-4 py-2 rounded hover:bg-green-600">
-                                                    Restock
-                                                </a> -->
                                             </td>
                                         </tr>
                                         <?php
@@ -201,50 +214,63 @@ if(isset($_GET  ["search"])){
                                     </tbody>
                                 </table>
                                 <!-- div space between left total and right pagination -->
+                                <!-- div space between left total and right pagination -->
                                 <div class="flex flex-row items-center justify-between mt-2">
                                     <!-- total data -->
-                                    <h2 class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">Total: 10</h2>
-                                    <!-- pagination with number -->
-                                    <div class="flex flex-row items-center justify-end gap-2 mt-2 text-sm">
-                                        <?php
-                                            $sql = "SELECT * FROM items";
+                                    <?php
+                                        $sql = "SELECT * FROM items WHERE name LIKE '%$search%' OR code LIKE '%$search%' OR price LIKE '%$search%' OR stock LIKE '%$search%' ORDER BY id DESC";
                                             $result = mysqli_query($conn, $sql);
                                             $total_data = mysqli_num_rows($result);
                                             $total_page = ceil($total_data / $limit);
+                                    ?>
+                                    <p class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                                        <i class="fas fa-list"></i>
+                                        Total: <?php echo $total_data; ?> Items
+                                    </p>
+                                    <!-- pagination with number -->
+                                    <div class="flex flex-row items-center justify-end gap-2 mt-2 text-sm">
+                                        <?php
                                             if($page > 1){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $first_page; ?>"
+                                        <a href="analytics_per_item.php?page=<?php echo $first_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
-                                            First
+                                            <i class="fas fa-angle-double-left"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $prev_page; ?>"
+                                        <a href="analytics_per_item.php?page=<?php echo $prev_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
-                                            Previous
+                                            <i class="fas fa-angle-left"></i>
                                         </a>
                                         <?php
                                             }
+                                            // keluakan 2 awal dan 2 akhir dari page saat ini dan buat ...
                                             for($i = 1; $i <= $total_page; $i++){
                                                 if($i == $page){
                                                     $active = "bg-blue-400 text-white";
                                                 }else{
                                                     $active = "bg-gray-200 text-gray-500 hover:bg-gray-400";
                                                 }
+                                                if($i > $page - 3 && $i < $page + 3){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $i; ?>"
+                                        <a href="analytics_per_item.php?page=<?php echo $i; ?>&search=<?php echo $search; ?>"
                                             class="<?php echo $active; ?> px-2 py-1 rounded-md">
                                             <?php echo $i; ?>
                                         </a>
                                         <?php
+                                                } else if ($i == $page - 3 || $i == $page + 3){
+                                        ?>
+                                        <span class="px-2 py-1 rounded-md">...</span>
+                                        <?php
+                                                }
                                             }
                                             if($page < $total_page){
                                         ?>
-                                        <a href="sales_per_item.php?page=<?php echo $next_page; ?>"
+                                        <a href="analytics_per_item.php?page=<?php echo $next_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
-                                            Next
+                                            <i class="fas fa-angle-right"></i>
                                         </a>
-                                        <a href="sales_per_item.php?page=<?php echo $total_page; ?>"
+                                        <a href="analytics_per_item.php?page=<?php echo $total_page; ?>&search=<?php echo $search; ?>"
                                             class="bg-gray-200 text-gray-500 px-2 py-1 rounded-md hover:bg-gray-400">
-                                            Last
+                                            <i class="fas fa-angle-double-right"></i>
                                         </a>
                                         <?php
                                             }

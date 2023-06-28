@@ -16,7 +16,28 @@ $currentYear = date('Y'); // Tahun saat ini
 $twoYearsAgo = $currentYear - 3; // 3 tahun sebelumnya
 
 // Query untuk mengambil data penjualan berdasarkan id_item dan rentang tahun kemudian join dengan tabel items dan users
-$query = "SELECT sales.id, sales.id_item, sales.sold, sales.month, sales.year, items.id, items.code, items.name, items.unit, items.price, items.stock, items.created_at, items.updated_at, items.id_user, users.id, users.fullname, users.email, users.phone, users.address, users.photo, users.created_at, users.updated_at FROM sales INNER JOIN items ON sales.id_item = items.id INNER JOIN users ON items.id_user = users.id WHERE sales.id_item = {$_GET['id']} AND sales.year BETWEEN $twoYearsAgo AND $currentYear ORDER BY sales.year ASC, CASE sales.month WHEN 1 THEN 1 WHEN 2 THEN 2 WHEN 3 THEN 3 WHEN 4 THEN 4 WHEN 5 THEN 5 WHEN 6 THEN 6 WHEN 7 THEN 7 WHEN 8 THEN 8 WHEN 9 THEN 9 WHEN 10 THEN 10 WHEN 11 THEN 11 WHEN 12 THEN 12 END ASC";
+$query = "SELECT sales.id, sales.id_item, sales.sold, sales.month, sales.year, items.id, items.code, items.name, items.unit, items.price, items.stock, items.created_at, items.updated_at, items.id_user, users.id, users.fullname, users.email, users.phone, users.address, users.photo, users.created_at, users.updated_at, clustering.category AS category
+FROM sales 
+INNER JOIN items ON sales.id_item = items.id 
+INNER JOIN users ON items.id_user = users.id 
+INNER JOIN sales_cluster ON items.id = sales_cluster.id_item 
+INNER JOIN clustering ON sales_cluster.nearest_cluster = clustering.id
+WHERE sales.id_item = {$_GET['id']} AND sales.year BETWEEN $twoYearsAgo AND $currentYear 
+ORDER BY sales.year ASC, CASE sales.month 
+    WHEN 1 THEN 1 
+    WHEN 2 THEN 2 
+    WHEN 3 THEN 3 
+    WHEN 4 THEN 4 
+    WHEN 5 THEN 5 
+    WHEN 6 THEN 6 
+    WHEN 7 THEN 7 
+    WHEN 8 THEN 8 
+    WHEN 9 THEN 9 
+    WHEN 10 THEN 10 
+    WHEN 11 THEN 11 
+    WHEN 12 THEN 12 
+END ASC";
+
 
 $result = mysqli_query($conn, $query);
 
@@ -36,11 +57,27 @@ while ($row = mysqli_fetch_assoc($result)) {
     // Tambahkan label ke array labels
     $labels[] = $label;
 
+    $sales_real = 0;
+    $trendMoment = 0;
+
+    // ambil data dari trends_moment dan tambahkan ke array data
+    $sql = "SELECT * FROM trends_moment WHERE month = $month AND year = $year AND id_item = {$_GET['id']}";
+    $result2 = mysqli_query($conn, $sql);
+    $row2 = mysqli_fetch_assoc($result2);
+
+    // jika data tidak ada, maka isi dengan 0
+    if ($row2 != null) {
+        $sales_real = $row2['sales_real'];
+        $trendMoment = $row2['trendMoment'];
+    }
+
     // Tambahkan jumlah barang yang terjual ke array data
     $data[] = [
         'value' => $row['sold'],
         'price' => $row['price'],
-        'revenue' => $row['sold'] * $row['price']
+        'revenue' => $row['sold'] * $row['price'],
+        'sales_real' => $sales_real,
+        'trendMoment' => $trendMoment,
     ];
 }
 // Mengubah struktur data untuk hanya memuat nilai 'value'
@@ -48,10 +85,18 @@ $values = array_map(function ($item) {
     return $item['value'];
 }, $data);
 
+// Mengubah struktur data untuk hanya memuat nilai 'trendMoment'
+$trendMoments = array_map(function ($item) {
+    return $item['trendMoment'];
+}, $data);
+
 // Mengubah format array menjadi string JSON
 $valuesJSON = json_encode($values);
+$trendMomentJSON = json_encode($trendMoments);
+
 // max value dari data $valuesJSON
 $maxValue = max($values);
+$maxTrendMoment = max($trendMoments);
 
 // Mengubah struktur data untuk hanya memuat nilai 'revenue'
 $revenues = array_map(function ($item) {
@@ -62,7 +107,11 @@ $revenues = array_map(function ($item) {
 $revenuesJSON = json_encode($revenues);
 
 // Query untuk mengambil data item berdasarkan id_item
-$itemQuery = "SELECT id, code, name, unit, price, stock, created_at, updated_at, id_user FROM items WHERE id = {$_GET['id']}";
+$itemQuery = "SELECT i.id, i.code, i.name, i.unit, i.price, i.stock, i.created_at, i.updated_at, i.id_user, c.id AS cluster_id, c.cluster, c.cluster_sold, c.cluster_price, c.cluster_sold_per_1000, c.cluster_price_per_1000, c.lowest, c.middle, c.highest, c.category
+FROM items AS i
+JOIN sales_cluster AS sc ON i.id = sc.id_item
+JOIN clustering AS c ON sc.nearest_cluster = c.id
+WHERE i.id = {$_GET['id']}";
 $itemResult = mysqli_query($conn, $itemQuery);
 $item = mysqli_fetch_assoc($itemResult);
 
@@ -161,6 +210,12 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                     <span><?php echo $item['name']; ?></span>
                                 </div>
                                 <div>
+                                    <!-- category -->
+                                    <i class="fas fa-tags"></i>
+                                    <span class="font-bold">Category:</span>
+                                    <span><?php echo $item['category']; ?></span>
+                                </div>
+                                <div>
                                     <!-- unit -->
                                     <i class="fas fa-boxes"></i>
                                     <span class="font-bold">Unit:</span>
@@ -228,19 +283,34 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                 type: 'line',
                 data: {
                     labels: <?php echo json_encode($labels); ?>,
-                    datasets: [{
-                        label: 'Penjualan',
-                        data: <?php echo $valuesJSON; ?>,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.4,
-                        borderWidth: 1,
-                        parsing: {
-                            xAxisKey: 'date',
-                            // get value from data object
-                            yAxisKey: 'value'
-                        }
-                    }]
+                    datasets: [
+                        {
+                            label: 'Penjualan',
+                            data: <?php echo $valuesJSON; ?>,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4,
+                            borderWidth: 1,
+                            parsing: {
+                                xAxisKey: 'date',
+                                // get value from data object
+                                yAxisKey: 'value'
+                            }
+                        },
+                        {
+                            label: 'Trend Moment',
+                            data: <?php echo $trendMomentJSON; ?>,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4,
+                            borderWidth: 1,
+                            parsing: {
+                                xAxisKey: 'date',
+                                // get value from data object
+                                yAxisKey: 'value'
+                            }
+                        },
+                    ]
                 },
                 options: {
                     responsive: true,

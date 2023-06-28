@@ -106,7 +106,26 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
     $distance = sqrt(pow($deltaX, 2) + pow($deltaY, 2));
     return $distance;
 }
+function calculateMAPE($actual, $forecast) {
+    $n = count($actual);
+    $errorSum = 0;
+    $countNonZero = 0;
 
+    for ($i = 0; $i < $n; $i++) {
+        if ($actual[$i] != 0) {
+            $errorSum += abs(($actual[$i] - $forecast[$i]) / $actual[$i]);
+            $countNonZero++;
+        }
+    }
+
+    if ($countNonZero == 0) {
+        $mape = 0;
+    } else {
+        $mape = ($errorSum / $countNonZero) * 100;
+    }
+
+    return $mape;
+}
 ?>
 
 <!DOCTYPE html>
@@ -520,6 +539,14 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                             $clusterRun["cluster" . ($i + 1) . "_category"] = $clusterCategories[2];
                                         }
                                     }
+
+                                    if ($clusterRun['cluster1_category'] == "") {
+                                        $clusterRun['cluster1_category'] = "Sedang";
+                                    } else if ($clusterRun['cluster2_category'] == "") {
+                                        $clusterRun['cluster2_category'] = "Sedang";
+                                    } else if ($clusterRun['cluster3_category'] == "") {
+                                        $clusterRun['cluster3_category'] = "Sedang";
+                                    }
                                     // print_r($dataSalesCluster);
                                     // echo "</pre>";
                                     // Memeriksa apakah data sudah ada dalam tabel
@@ -724,7 +751,7 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                         $trendMoments = array();
                                         $dataN = count($dataItemTrend);
                                         $dateY = date('Y');
-                                        for ($i = 1; $i < $month; $i++) {   
+                                        for ($i = 1; $i < $month + 1; $i++) {   
                                             // cari di sales data yang month = $i dan id_item = $id_item kecuali tahun ini
                                             $sql_sales = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' EXCEPT SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
                                             // count data
@@ -762,7 +789,8 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                                 $ape = $minusyminy2 * 100;
                                                 $accuracy = 100 - $ape;
                                                 $realaccuracy = $accuracy - ($ape*2);
-                                            }                              
+                                            }
+                                            // add $sales_real to $actual                         
                                             $trendMoments[] = array(
                                                 'id_item' => $id_item,
                                                 'month' => $i,
@@ -779,6 +807,7 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                                 'accuracy' => $realaccuracy,
                                             );
                                         }
+                                        
                                         // echo "<pre>";
                                         // print_r($trendMoments);
                                         // echo "id_item = " . $id_item . "<br>";
@@ -802,6 +831,8 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                         // echo "y = " . $y . "<br>";
                                         // print_r($dataItemTrend);
                                         // echo "</pre>";
+                                        $Factual = [];
+                                        $Fforecast = [];
                                         $dataTrendMoments = array();
                                         foreach ($trendMoments as $dit) {
                                             $id_item = $dit['id_item'];
@@ -842,13 +873,40 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                                 $ape = $ape / 100;
                                                 $accuracy = $accuracy / 100;
                                             }
-
                                             // accuracy is 100 - ape
                                             $realaccuracy = 100 - $ape;
                                             // $sales_real * $realaccuracy / 100
-                                            $trendMoment = $sales_real * $realaccuracy / 100;
+                                            $trendMoment = $sales_real * ($realaccuracy / 100) * 1.7;
+                                            $mape = 0;
+                                            $Factual[] = $sales_real;
+                                            $Fforecast[] = $trendMoment;
+                                            // find id_sales from sales table
+                                            $sql_sales = "SELECT * FROM sales WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
+                                            $result_sales = $conn->query($sql_sales);
+                                            $row_sales = $result_sales->fetch_assoc();
+                                            $id_sale = $row_sales['id'];
+
+                                            if($trendMoment < 0 || $trendMoment == 0) {
+                                                $trendMoment = 0;
+                                            } else {
+                                                $indexMusim = $sales_real / $trendMoment;
+                                            }
+
+                                            if ( $trendMoment > $sales_real ) {
+                                                $nilaiLebih = $trendMoment - $sales_real;
+                                                // % dari nilaiLebih
+                                                $ape = $nilaiLebih / $trendMoment * 100;
+                                                $realaccuracy = 100 - $ape;
+                                            } else if ( $trendMoment < $sales_real && $trendMoment != 0 ) {
+                                                $nilaiLebih = $sales_real - $trendMoment;
+                                                // % dari nilaiLebih
+                                                $ape = $nilaiLebih / $trendMoment * 100;
+                                                $realaccuracy = 100 - $ape;
+                                            } 
+
                                             $dataTrendMoments[] = array(
                                                 'id_item' => $id_item,
+                                                'id_sale' => $id_sale,	
                                                 'month' => $month,
                                                 'time_x' => $time_x,
                                                 'year' => $year,
@@ -861,20 +919,26 @@ function euclideanDistance($clusterPrice, $clusterSold, $price, $sold) {
                                                 'forecast' => $forecast,
                                                 'predict' => $predict,
                                                 'ape' => $ape,
-                                                'accuracy' => $realaccuracy
+                                                'accuracy' => $realaccuracy,
+                                                'mape' => $mape,
                                             );
                                             // insert into trend_moment table if not exist yet and update if exist
-                                            $sql_tm = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
+                                            $sql_tm = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}' AND id_sale='{$id_sale}'";
                                             $result_tm = $conn->query($sql_tm);
+                                            // hitung $result_tm->num_rows
                                             // INSERT INTO `trends_moment`(`id`, `id_item`, `month`, `time_x`, `year`, `sales_real`, `a`, `b`, `trendMoment`, `averageSold`, `indexMusim`, `forecast`, `ape`, `accuracy`) VALUES ('[value-1]','[value-2]','[value-3]','[value-4]','[value-5]','[value-6]','[value-7]','[value-8]','[value-9]','[value-10]','[value-11]','[value-12]','[value-13]','[value-14]')
                                             if ($result_tm->num_rows == 0) {
-                                                $sql_insert_tm = "INSERT INTO trends_moment (id_item, month, time_x, year, sales_real, a, b, trendMoment, averageSold, indexMusim, forecast, ape, accuracy) VALUES ('{$id_item}', '{$month}', '{$time_x}', '{$year}', '{$sales_real}', '{$a}', '{$b}', '{$trendMoment}', '{$averageSold}', '{$indexMusim}', '{$forecast}', '{$ape}', '{$realaccuracy}')";
+                                                $sql_insert_tm = "INSERT INTO trends_moment (id_item, id_sale, month, time_x, year, sales_real, a, b, trendMoment, averageSold, indexMusim, forecast, ape, mape, accuracy) VALUES ('{$id_item}', '{$id_sale}', '{$month}', '{$time_x}', '{$year}', '{$sales_real}', '{$a}', '{$b}', '{$trendMoment}', '{$averageSold}', '{$indexMusim}', '{$forecast}', '{$ape}', '{$mape}', '{$realaccuracy}')";
                                                 $result_insert_tm = $conn->query($sql_insert_tm);
                                             } else {
-                                                $sql_update_tm = "UPDATE trends_moment SET a='{$a}', b='{$b}', trendMoment='{$trendMoment}', averageSold='{$averageSold}', indexMusim='{$indexMusim}', forecast='{$forecast}', ape='{$ape}', accuracy='{$realaccuracy}', sales_real='{$sales_real}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
+                                                $sql_update_tm = "UPDATE trends_moment SET id_item='{$id_item}', id_sale='{$id_sale}', month='{$month}', time_x='{$time_x}', year='{$year}', sales_real='{$sales_real}', a='{$a}', b='{$b}', trendMoment='{$trendMoment}', averageSold='{$averageSold}', indexMusim='{$indexMusim}', forecast='{$forecast}', ape='{$ape}', mape='{$mape}', accuracy='{$realaccuracy}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}' AND id_sale='{$id_sale}'";
                                                 $result_update_tm = $conn->query($sql_update_tm);
                                             }
                                         }
+                                        $mape = calculateMAPE($Factual, $Fforecast);
+                                        // update mape trends_moment
+                                        $sql_update_tm = "UPDATE trends_moment SET mape='{$mape}' WHERE id_item='{$id_item}'";
+                                        $result_update_tm = $conn->query($sql_update_tm);
                                         // echo "<pre>";
                                         // print_r($dataTrendMoments);
                                         // echo "</pre>";
