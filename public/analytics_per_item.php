@@ -20,13 +20,13 @@ $items = mysqli_query($conn, "SELECT i.code, i.name, i.unit, i.price, i.id AS id
 FROM items AS i
 JOIN sales_cluster AS s ON i.id = s.id_item
 JOIN clustering AS c ON s.nearest_cluster = c.id
-ORDER BY i.id DESC
+ORDER BY category DESC, cluster ASC, i.name ASC
 LIMIT $start, $limit");
 $items_all = mysqli_query($conn, "SELECT i.code, i.name, i.unit, i.price, i.id AS id_item, s.id AS id_sales, s.nearest_cluster AS cluster, c.category AS category
 FROM items AS i
 JOIN sales_cluster AS s ON i.id = s.id_item
 JOIN clustering AS c ON s.nearest_cluster = c.id
-ORDER BY i.id DESC");
+ORDER BY category DESC, cluster ASC, i.name ASC");
 $total = mysqli_num_rows($items_all);
 $pages = ceil($total / $limit);
 $first_page = 1;
@@ -41,14 +41,14 @@ if(isset($_GET["search"])){
     JOIN sales_cluster AS s ON i.id = s.id_item
     JOIN clustering AS c ON s.nearest_cluster = c.id
     WHERE i.name LIKE '%$search%' OR i.code LIKE '%$search%'
-    ORDER BY i.id DESC
+    ORDER BY category DESC, cluster ASC, i.name ASC
     LIMIT $start, $limit");
     $items_all = mysqli_query($conn, "SELECT i.code, i.name, i.unit, i.price, i.id AS id_item, s.id AS id_sales, s.nearest_cluster AS cluster, c.category AS category
     FROM items AS i
     JOIN sales_cluster AS s ON i.id = s.id_item
     JOIN clustering AS c ON s.nearest_cluster = c.id
     WHERE i.name LIKE '%$search%' OR i.code LIKE '%$search%'
-    ORDER BY i.id DESC");
+    ORDER BY category DESC, cluster ASC, i.name ASC");
     $total = mysqli_num_rows($items_all);
     $pages = ceil($total / $limit);
     $previous = $page - 1;
@@ -62,7 +62,7 @@ if(isset($_GET["search"])){
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Per Item - ARIPSKRIPSI</title>
+    <title>Analytics Per Item - PharmaTrend</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"

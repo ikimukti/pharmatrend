@@ -20,6 +20,7 @@ if (isset($_POST["update"])) {
             die();
         }
     }
+    
     $phone = $_POST["phone"];
     $address = $_POST["address"];
 
@@ -38,6 +39,12 @@ if (isset($_POST["update"])) {
         // Perbarui nama foto profil di database
         $query = "UPDATE users SET photo = '$photo_filename' WHERE id = '$id'";
         mysqli_query($conn, $query);
+        $_SESSION["photo"] = $photo_filename;
+
+        // delete foto lama
+        if ($row["photo"] != "default.png") {
+            unlink("img/profile/" . $row["photo"]);
+        }
     }
 
     // Redirect ke halaman profil

@@ -32,7 +32,7 @@ if(mysqli_num_rows($query) > 0){
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit User - ARIPSKRIPSI</title>
+    <title>Edit User - PharmaTrend</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
@@ -168,10 +168,10 @@ if(mysqli_num_rows($query) > 0){
                                     </div>
                                     <!-- input button save and cancel -->
                                     <div class="flex flex-row items-center justify-end gap-2 mt-4">
-                                        <input type="submit"
-                                            class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md"
-                                            name="submit" value="Save">
-                                        <a href="users.php"
+                                        <button type="submit"
+                                            class="bg-blue-400 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                                            name="submit">Save</button>
+                                        <a href="manage_user.php"
                                             class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
                                     </div>
                                 </form>

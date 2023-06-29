@@ -7,8 +7,10 @@ if(!isset($_SESSION["id"])){
 }
 ?>
 <div class="w-2/12 h-[calc(100vh-3.5rem)] border-r-2 border-gray-200 overflow-y-auto overflow-hidden no-scrollbar">
-    <div class="flex flex-col items-center justify-center mt-4  p-2">
+    <div class="flex flex-col items-center justify-center mt-4  p-2 space-y-2">
         <h1 class="text-lg"><?php echo $_SESSION["fullname"]; ?></h1>
+        <img src="img/profile/<?php if($_SESSION["photo"] == ""){echo "profile.jpeg";}else{echo $_SESSION["photo"];} ?>"
+            class="w-20 h-20 rounded-full object-cover">
         <div class="flex flex-row items-center justify-center gap-2">
             <span class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
                 <i class="fas fa-user"></i>
@@ -36,6 +38,15 @@ if(!isset($_SESSION["id"])){
                 <div class="flex flex-row items-center">
                     <i class="fa-solid fa-user text-fuchsia-500 text-lg mr-2"></i>
                     <a href="profile.php" class="text-gray-700 hover:text-gray-900">Profile</a>
+                </div>
+            </li>
+            <hr class="border-gray-200">
+            <!-- change password -->
+            <li
+                class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
+                <div class="flex flex-row items-center">
+                    <i class="fa-solid fa-key text-fuchsia-500 text-lg mr-2"></i>
+                    <a href="change_password.php" class="text-gray-700 hover:text-gray-900">Change Password</a>
                 </div>
             </li>
             <?php
@@ -147,7 +158,7 @@ if(!isset($_SESSION["id"])){
                     class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
                     <div>
                         <i class="text-fuchsia-500 text-lg mr-2 fa-solid fa-chart-bar"></i>
-                        <a href="analytics.php" class="text-gray-700 hover:text-gray-900">Analytics All</a>
+                        <a href="analytics.php?reload=false" class="text-gray-700 hover:text-gray-900">Analytics All</a>
                     </div>
                 </li>
                 <li
@@ -159,14 +170,6 @@ if(!isset($_SESSION["id"])){
                     </div>
                 </li>
             </ul>
-            <hr class="border-gray-200">
-            <li
-                class="flex flex-row justify-between items-center space-x-2 hover:bg-fuchsia-200 rounded-md p-2 cursor-pointer">
-                <div class="flex flex-row items-center">
-                    <i class="fa-solid fa-gear text-fuchsia-500 text-lg mr-2"></i>
-                    <a class="text-gray-700 hover:text-gray-900" href="setting.php?id=1">Setting</a>
-                </div>
-            </li>
             <!-- Sign out -->
             <hr class="border-gray-200">
             <li

@@ -13,7 +13,7 @@ if(!isset($_SESSION["id"])){
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add User - ARIPSKRIPSI</title>
+    <title>Add User - PharmaTrend</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
@@ -45,7 +45,7 @@ if(!isset($_SESSION["id"])){
                         <div>
                             <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
                             <span class="text-gray-700">/</span>
-                            <a href="users.php" class="text-gray-700 hover:text-gray-950">Users</a>
+                            <a href="manage_users.php" class="text-gray-700 hover:text-gray-950">Manage Users</a>
                             <span class="text-gray-700">/</span>
                             <a href="add_user.php" class="text-gray-700 hover:text-gray-950">Add User</a>
                         </div>
@@ -67,7 +67,7 @@ if(!isset($_SESSION["id"])){
                             <!-- div form add user -->
                             <div class="flex flex-col gap-4">
                                 <?php
-                                    if(isset($_POST["submit"])){
+                                    if($_SERVER["REQUEST_METHOD"] === "POST"){
                                         $fullname = $_POST["fullname"];
                                         $email = $_POST["email"];
                                         $password = $_POST["password"];
@@ -77,7 +77,7 @@ if(!isset($_SESSION["id"])){
                                         $status = $_POST["status"];
                                         $error = array();
                                         if(empty($fullname) || empty($email) || empty($password) || empty($phone) || empty($address) || empty($role) || empty($status)){
-                                            array_push($error, "Please fill all the fields");
+                                            echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Please fill all fields</div>";
                                         }
                                         if (!empty($_FILES['photo']['name'])) {
                                             $photo_name = $_FILES['photo']['name'];
@@ -108,15 +108,16 @@ if(!isset($_SESSION["id"])){
                                             if(mysqli_num_rows($query) > 0){
                                                 echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Email already exists</div>";
                                             }else{
-                                                $sql = "INSERT INTO users (fullname, email, password, phone, address, photo, role, status, created_at, updated_at) VALUES ('$fullname', '$email', '$password', '$phone', '$address', '$photo_path', '$role', '$status', '$created_at', '$updated_at')";
+                                                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                                                $sql = "INSERT INTO users (fullname, email, password, phone, address, photo, role, status, created_at, updated_at) VALUES ('$fullname', '$email', '$hashedPassword', '$phone', '$address', '$photo_path', '$role', '$status', '$created_at', '$updated_at')";
                                                 // save to database and check if success or not and redirect to users.php
                                                 if(mysqli_query($conn, $sql)){
                                                     // header already sent error fix
                                                     ob_start();
                                                     if(!headers_sent()){
-                                                        header("Location: manage_users.php");
+                                                        header("Location: manage_user.php");
                                                     } else{
-                                                        echo "<script>window.location.href='manage_users.php';</script>";
+                                                        echo "<script>window.location.href='manage_user.php';</script>";
                                                     }
                                                 }else{
                                                     echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Failed to add user</div>";
@@ -125,7 +126,7 @@ if(!isset($_SESSION["id"])){
                                         }
                                     }
                                 ?>
-                                <form action="add_user.php" method="post">
+                                <form action="" method="POST" enctype="multipart/form-data">
                                     <div class="flex flex-col gap-2 mt-2">
                                         <label for="fullname" class="text-sm">Full Name</label>
                                         <input type="text" name="fullname" id="fullname"
@@ -171,11 +172,8 @@ if(!isset($_SESSION["id"])){
                                     </div>
                                     <!-- input button save and cancel -->
                                     <div class="flex flex-row items-center justify-end gap-2 mt-4">
-                                        <input type="submit"
-                                            class="bg-green-400 hover:bg-green-600 text-white px-4 py-2 rounded-md"
-                                            name="submit" value="Save">
-                                        <a href="users.php"
-                                            class="bg-red-400 hover:bg-red-600 text-white px-4 py-2 rounded-md">Cancel</a>
+                                        <button type="submit" name="save" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Save</button>
+                                        <a href="manage_users.php" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Cancel</a>
                                     </div>
                                 </form>
                             </div>

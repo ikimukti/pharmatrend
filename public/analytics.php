@@ -134,7 +134,7 @@ function calculateMAPE($actual, $forecast) {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics - ARIPSKRIPSI</title>
+    <title>Analytics - PharmaTrend</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"
@@ -498,7 +498,7 @@ function calculateMAPE($actual, $forecast) {
                                 $newRasio = $beetweenClassVariation / $totalWithinClassVariation;
                                 $rasio = $newRasio;
                                 $clusterIteration += 1;
-                                if ($clusterIteration == 20) {
+                                if ($clusterIteration == 10) {
                                     // echo "<pre>";
                                     // echo "Total Data : " . $totalData . "<br>";
                                     // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
@@ -672,12 +672,15 @@ function calculateMAPE($actual, $forecast) {
                                             $conn->query($sql_insert);
                                         }
                                         // get all data from sales with id_item 2 tahun lalu join item
-                                        $th2 = $year + 1;
-                                        $sql_2th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th2}'";
-                                        $th1 = $year;
-                                        $sql_1th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th1}'";
-                                        $sql_combine = "$sql_2th UNION $sql_1th";
-                                        $result_sales = $conn->query($sql_combine);
+                                        // $th2 = $year + 1;
+                                        // $sql_2th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th2}'";
+                                        // $th1 = $year;
+                                        // $sql_1th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th1}'";
+                                        // $sql_combine = "$sql_2th UNION $sql_1th";
+                                        // $result_sales = $conn->query($sql_combine);
+                                        $tahunini = date('Y');
+                                        $sql_sales = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND year <> '{$tahunini}'";
+                                        $result_sales = $conn->query($sql_sales);
                                         // echo "jumlah data: " . $result_sales->num_rows . "<br>";
                                         // SELECT `id`, `code`, `sold`, `month`, `year`, `created_at`, `updated_at`, `id_item`, `id_user` FROM `sales` WHERE 1
                                         $sigma_y = 0;
@@ -699,7 +702,6 @@ function calculateMAPE($actual, $forecast) {
                                             $id_user = $value['id_user'];
                                             $data_actual_or_y = $sold;
                                             $x2 = $time_x * $time_x;
-                                            $time_x = $time_x + 1;
                                             $xy = $time_x * $data_actual_or_y;
                                             $dataItemTrend[] = array(
                                                 'id' => $id,
@@ -717,41 +719,88 @@ function calculateMAPE($actual, $forecast) {
                                             );
                                             $sigma_y = $sigma_y + $sold;
                                             $sigma_x = $sigma_x + $time_x;
+                                            $time_x = $time_x + 1;
                                             $sigma_x2 = $sigma_x2 + $x2;
                                             $sigma_xy = $sigma_xy + $xy;
                                         }
+                                        // nilai n (jumlah data) nilai n (jumlah data)
                                         $n = count($dataItemTrend);
-                                        // average data_actual_or_y
+                                        // average data_actual_or_y rata rata y
                                         $average_y = $sigma_y / $n;
-                                        // average time_x
+                                        
+                                        // average time_x rata rata x
                                         $average_x = $sigma_x / $n;
-                                        // n new
-                                        $n_new = $n;
-                                        // sigma_x new
-                                        $sigma_x_new = $sigma_x;
-                                        // sigma_x new 2
-                                        $sigma_x_new2 = $sigma_x;
-                                        // sigma_y new
-                                        $sigma_y_new = $sigma_y;
-                                        if ($n_new != $sigma_x) {
-                                            $n_new = $sigma_x;
-                                            $n_times =$sigma_x / $n;
-                                            $sigma_x_new2 = $sigma_x * $n_times;
-                                            $sigma_y_new = $sigma_y * $n_times;
-                                        } 
-                                        $resultminus = $sigma_y_new - $sigma_xy;
-                                        $resultminus2 = $sigma_x_new2 - $sigma_x2;
-                                        $b = $resultminus / $resultminus2;
-                                        $bcounted = $b * $sigma_x;
-                                        $kminus = $sigma_y - $bcounted;
-                                        $a = $kminus / $n;
-                                        $y = $a + ($b * $n);
-                                        // index musim
-                                        $month = date('m') + 1;
-                                        $trendMoments = array();
-                                        $dataN = count($dataItemTrend);
-                                        $dateY = date('Y');
-                                        for ($i = 1; $i < $month + 1; $i++) {   
+
+                                        // coba 1
+                                        $cobaPreYATAS = $sigma_y;
+                                        $cobaPreAATAS = $n;
+                                        $cobaPreABAWAH = $sigma_x;
+                                        $cobaPreYBAWAH = $sigma_xy;
+                                        $cobaPreBAATAS = $sigma_x;
+                                        $cobaPreBBAWAH = $sigma_x2;
+
+                                        $times = $cobaPreABAWAH / $cobaPreAATAS;
+                                        $cobaPraYATAS = $cobaPreYATAS * $times;
+                                        $cobaPraAATAS = $cobaPreAATAS * $times;
+                                        $cobaPraABAWAH = $cobaPreABAWAH;
+                                        $cobaPraYBAWAH = $cobaPreYBAWAH;
+                                        $cobaPraBATAS = $cobaPreBAATAS * $times;
+                                        $cobaPraBBAWAH = $cobaPreBBAWAH;
+
+                                        $cobaYBaru = $cobaPraYATAS - $cobaPraYBAWAH;
+                                        $cobaABaru = $cobaPraAATAS - $cobaPraABAWAH;
+                                        $cobaBBaru = $cobaPraBATAS - $cobaPraBBAWAH;
+
+                                        $bREAL = $cobaYBaru / $cobaBBaru;
+
+                                        $cccYATAS = $sigma_y;
+                                        $cccAATAS = $n;
+                                        $cccBATAS = $sigma_x;
+                                        $cccBATAS = $cccBATAS * $bREAL;
+                                        $cccXXXX = $cccYATAS - $cccBATAS;
+                                        $aREAL = $cccXXXX / $cccAATAS;
+
+
+                                        // if ($id_item == 101) {
+                                        //     echo "jumlah data: " . $n . "<br>";
+                                        //     echo "sigma y: " . $sigma_y . "<br>";
+                                        //     echo "sigma x: " . $sigma_x . "<br>";
+                                        //     echo "sigma xy: " . $sigma_xy . "<br>";
+                                        //     echo "sigma x2: " . $sigma_x2 . "<br>";
+                                        //     echo "average x: " . $average_x . "<br>";
+                                        //     echo "average y: " . $average_y . "<br>";
+                                        //     echo "pre Y ATAS: " . $cobaPreYATAS . "<br>";
+                                        //     echo "pre A ATAS: " . $cobaPreAATAS . "<br>";
+                                        //     echo "pre A BAWAH: " . $cobaPreABAWAH . "<br>";
+                                        //     echo "pre Y BAWAH: " . $cobaPreYBAWAH . "<br>";
+                                        //     echo "pre B ATAS: " . $cobaPreBAATAS . "<br>";
+                                        //     echo "pre B BAWAH: " . $cobaPreBBAWAH . "<br>";
+                                        //     echo "times: " . $times . "<br>";
+                                        //     echo "pra Y ATAS: " . $cobaPraYATAS . "<br>";
+                                        //     echo "pra A ATAS: " . $cobaPraAATAS . "<br>";
+                                        //     echo "pra A BAWAH: " . $cobaPraABAWAH . "<br>";
+                                        //     echo "pra Y BAWAH: " . $cobaPraYBAWAH . "<br>";
+                                        //     echo "pra B ATAS: " . $cobaPraBATAS . "<br>";
+                                        //     echo "pra B BAWAH: " . $cobaPraBBAWAH . "<br>";
+                                        //     echo "y baru: " . $cobaYBaru . "<br>";
+                                        //     echo "a baru: " . $cobaABaru . "<br>";
+                                        //     echo "b baru: " . $cobaBBaru . "<br>";
+                                        //     echo "b real: " . $bREAL . "<br>";
+                                        //     echo "ccc y atas: " . $cccYATAS . "<br>";
+                                        //     echo "ccc a atas: " . $cccAATAS . "<br>";
+                                        //     echo "ccc b atas: " . $cccBATAS . "<br>";
+                                        //     echo "ccc xxxx: " . $cccXXXX . "<br>";
+                                        //     echo "a real: " . $aREAL . "<br>";
+                                        // }
+                                        $dateY = date("Y");
+                                        $ape = 0;
+                                        $accuracy = 0;
+                                        $realaccuracy = 0;
+                                        $realape = 0;
+                                        $mape = 0;
+                                        $actualData = [];
+                                        $forecastData = [];
+                                        for ($i = 1; $i < 13; $i++) {   
                                             // cari di sales data yang month = $i dan id_item = $id_item kecuali tahun ini
                                             $sql_sales = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' EXCEPT SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
                                             // count data
@@ -763,185 +812,127 @@ function calculateMAPE($actual, $forecast) {
                                                 $sold = $row['sold'];
                                                 $sigma_sold = $sigma_sold + $sold;
                                             }
-                                            // echo "jumlah data bulan " . $i . " = " . $count_sales . "<br>";
-
-                                            $sales_real = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
-                                            $result_sales_real = $conn->query($sales_real);
-                                            $sold_real = 0;
-                                            while ($row = $result_sales_real->fetch_assoc()) {
-                                                $sold_real = $sold_real + $row['sold'];
-                                            }
-                                            $dateWDDD = date('Y');  
-                                            $trendMoment = $a + ($b * ($dataN + $i));
                                             $averageSold = $sigma_sold / $count_sales;
-                                            $indexMusim = $sigma_sold / $average_y;
-                                            $forecast = ($a + ($b * ($dataN + $i))) * ($sigma_sold / $average_y);
-                                            $minusyminy1 = $sold_real - $trendMoment;
-                                            $minusyminy2 = $minusyminy1 / $trendMoment;
-                                            $ape = 0;
-                                            $accuracy = 0;
-                                            $realaccuracy = 0;
-                                            if ($sales_real < $trendMoment) {
-                                                $ape = $minusyminy2 * 100;
-                                                $accuracy = 100 - $ape;
-                                                $realaccuracy = $accuracy - (($ape*2)*-1);
+                                            $indexMusim = $averageSold / $average_y;
+                                            $xxxx = ($n-1) + $i;
+                                            $aPerBln = $aREAL;
+                                            $bPerBln = $bREAL * $xxxx;
+                                            $yPerBln = $aPerBln + $bPerBln;
+                                            $forecast = $yPerBln * $indexMusim;
+                                            // if($id_item == 101){
+                                            //     echo "x = " . $xxxx . "<br>";
+                                            //     echo "a per bulan = " . $aPerBln . "<br>";
+                                            //     echo "b per bulan = " . $bPerBln . "<br>";
+                                            //     echo "y per bulan = " . $yPerBln . "<br>";
+                                            //     echo "index musim = " . $indexMusim . "<br>";
+                                            //     echo "forecast = " . $forecast . "<br>";
+                                            // }
+                                            // SQL get data from sales table tahun ini
+                                            $sql_salesss = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
+                                            // count data
+                                            $result_salesss = $conn->query($sql_salesss);
+                                            $count_salesss = $result_sales->num_rows;
+                                            $sales_real = 0;
+                                            $id_sale = null;
+                                            if ($count_salesss > 0) {
+                                                while ($row = $result_salesss->fetch_assoc()) {
+                                                    $sales_real = $row['sold'];
+                                                    $id_sale = $row['id'];
+                                                    if($sales_real <= 0){
+                                                        $ape = 0;
+                                                        $accuracy = 0;
+                                                    } else {
+                                                        $dump = $sales_real - $forecast;
+                                                        $dump2 = $dump / $sales_real;
+                                                        $actualData[] = $sales_real;
+                                                        $forecastData[] = $forecast;
+                                                        if($sales_real < $forecast){
+                                                            $ape = $dump2 * 100;
+                                                            $accuracy = 100 - $ape;
+                                                            $accuracy = abs($accuracy - (($ape * 2) * -1));
+                                                            $ape = abs($ape * -1);
+                                                        } else {
+                                                            $ape = abs($dump2 * 100);
+                                                            $accuracy = abs(100 - $ape);
+                                                        }
+                                                    }
+                                                }
                                             } else {
-                                                $ape = $minusyminy2 * 100;
-                                                $accuracy = 100 - $ape;
-                                                $realaccuracy = $accuracy - ($ape*2);
+                                                $sales_real = 0;
+                                                $id_sale = null;
+                                                $ape = 0;
+                                                $accuracy = 0;
                                             }
-                                            // add $sales_real to $actual                         
+                                            if($sales_real == 0){
+                                                $id_sale = null;
+                                                $ape = 0;
+                                                $accuracy = 0;
+                                            }
+                                            
                                             $trendMoments[] = array(
                                                 'id_item' => $id_item,
+                                                'id_sale' => $id_sale,
                                                 'month' => $i,
-                                                'time_x' => $dataN + $i,
-                                                'year' => $dateWDDD,
-                                                'a' => $a,
-                                                'b' => $b,
-                                                'sales_real' => $sold_real,
-                                                'trendMoment' => $trendMoment,
+                                                'time_x' => $xxxx,
+                                                'year' => $dateY,
+                                                'a' => $aPerBln,
+                                                'b' => $bPerBln,
+                                                'y' => $yPerBln,
+                                                'sales_real' => $sales_real,
+                                                'forecast' => $forecast,
                                                 'averageSold' => $averageSold,
                                                 'indexMusim' => $indexMusim,
-                                                'forecast' => $forecast,
                                                 'ape' => $ape,
-                                                'accuracy' => $realaccuracy,
+                                                'accuracy' => $accuracy,
+                                                'mape' => $mape
                                             );
                                         }
-                                        
-                                        // echo "<pre>";
-                                        // print_r($trendMoments);
-                                        // echo "id_item = " . $id_item . "<br>";
-                                        // echo "sigma_y = " . $sigma_y . "<br>";
-                                        // echo "sigma_x = " . $sigma_x . "<br>";
-                                        // echo "sigma_x2 = " . $sigma_x2 . "<br>";
-                                        // echo "sigma_xy = " . $sigma_xy . "<br>";
-                                        // echo "n = " . $n . "<br>";
-                                        // echo "average_y = " . $average_y . "<br>";
-                                        // echo "average_x = " . $average_x . "<br>";
-                                        // echo "n_new = " . $n_new . "<br>";
-                                        // echo "sigma_x_new = " . $sigma_x_new . "<br>";
-                                        // echo "sigma_x_new2 = " . $sigma_x_new2 . "<br>";
-                                        // echo "sigma_y_new = " . $sigma_y_new . "<br>";
-                                        // echo "resultminus = " . $resultminus . "<br>";
-                                        // echo "resultminus2 = " . $resultminus2 . "<br>";
-                                        // echo "b = " . $b . "<br>";
-                                        // echo "bcounted = " . $bcounted . "<br>";
-                                        // echo "kminus = " . $kminus . "<br>";
-                                        // echo "a = " . $a . "<br>";
-                                        // echo "y = " . $y . "<br>";
-                                        // print_r($dataItemTrend);
-                                        // echo "</pre>";
-                                        $Factual = [];
-                                        $Fforecast = [];
-                                        $dataTrendMoments = array();
-                                        foreach ($trendMoments as $dit) {
-                                            $id_item = $dit['id_item'];
-                                            $month = $dit['month'];
-                                            $time_x = $dit['time_x'];
-                                            $year = $dit['year'];
-                                            $a = $dit['a'];
-                                            $b = $dit['b'];
-                                            $sales_real = $dit['sales_real'];
-                                            $trendMoment = $dit['trendMoment'];
-                                            $averageSold = $dit['averageSold'];
-                                            $indexMusim = $dit['indexMusim'];
-                                            $forecast = $dit['forecast'];
-                                            $predict = $trendMoment * $indexMusim;
-                                            $minusyminy1 = $sales_real - $trendMoment;
-                                            $minusyminy2 = $minusyminy1 / $trendMoment;
-                                            $ape = 0;
-                                            $accuracy = 0;
-                                            $realaccuracy = 0;
-                                            if ($sales_real < $trendMoment) {
-                                                $ape = $minusyminy2 * 100;
-                                                $accuracy = 100 - $ape;
-                                                $realaccuracy = $accuracy - (($ape*2)*-1);
+
+                                        $mapess = calculateMAPE($actualData, $forecastData);
+
+                                        foreach ($trendMoments as $trendMoment) {
+                                            $id_item = $trendMoment['id_item'];
+                                            $id_sale = $trendMoment['id_sale'];
+                                            $month = $trendMoment['month'];
+                                            $time_x = $trendMoment['time_x'];
+                                            $year = $trendMoment['year'];
+                                            $a = $trendMoment['a'];
+                                            $b = $trendMoment['b'];
+                                            $y = $trendMoment['y'];
+                                            $sales_real = $trendMoment['sales_real'];
+                                            $forecast = $trendMoment['forecast'];
+                                            $averageSold = $trendMoment['averageSold'];
+                                            $indexMusim = $trendMoment['indexMusim'];
+                                            $ape = $trendMoment['ape'];
+                                            $accuracy = $trendMoment['accuracy'];
+                                            if($sales_real == 0){
+                                                $mape = 0;
                                             } else {
-                                                $ape = $minusyminy2 * 100;
-                                                $accuracy = 100 - $ape;
-                                                $realaccuracy = $accuracy - ($ape*2);
-                                            }
-                                            if ($ape < 0) {
-                                                $ape = $ape * -1;
-                                                $accuracy = $accuracy * -1;
-                                            } 
-                                            if ($ape > 1000) {
-                                                $ape = $ape / 10;
-                                                $accuracy = $accuracy / 10;
-                                            }
-                                            if ($ape > 100) {
-                                                $ape = $ape / 100;
-                                                $accuracy = $accuracy / 100;
-                                            }
-                                            // accuracy is 100 - ape
-                                            $realaccuracy = 100 - $ape;
-                                            // $sales_real * $realaccuracy / 100
-                                            $trendMoment = $sales_real * ($realaccuracy / 100) * 1.7;
-                                            $mape = 0;
-                                            $Factual[] = $sales_real;
-                                            $Fforecast[] = $trendMoment;
-                                            // find id_sales from sales table
-                                            $sql_sales = "SELECT * FROM sales WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
-                                            $result_sales = $conn->query($sql_sales);
-                                            $row_sales = $result_sales->fetch_assoc();
-                                            $id_sale = $row_sales['id'];
-
-                                            if($trendMoment < 0 || $trendMoment == 0) {
-                                                $trendMoment = 0;
-                                            } else {
-                                                $indexMusim = $sales_real / $trendMoment;
+                                                $mape = $mapess;
                                             }
 
-                                            if ( $trendMoment > $sales_real ) {
-                                                $nilaiLebih = $trendMoment - $sales_real;
-                                                // % dari nilaiLebih
-                                                $ape = $nilaiLebih / $trendMoment * 100;
-                                                $realaccuracy = 100 - $ape;
-                                            } else if ( $trendMoment < $sales_real && $trendMoment != 0 ) {
-                                                $nilaiLebih = $sales_real - $trendMoment;
-                                                // % dari nilaiLebih
-                                                $ape = $nilaiLebih / $trendMoment * 100;
-                                                $realaccuracy = 100 - $ape;
-                                            } 
-
-                                            $dataTrendMoments[] = array(
-                                                'id_item' => $id_item,
-                                                'id_sale' => $id_sale,	
-                                                'month' => $month,
-                                                'time_x' => $time_x,
-                                                'year' => $year,
-                                                'a' => $a,
-                                                'b' => $b,
-                                                'sales_real' => $sales_real,
-                                                'trendMoment' => $trendMoment,
-                                                'averageSold' => $averageSold,
-                                                'indexMusim' => $indexMusim,
-                                                'forecast' => $forecast,
-                                                'predict' => $predict,
-                                                'ape' => $ape,
-                                                'accuracy' => $realaccuracy,
-                                                'mape' => $mape,
-                                            );
                                             // insert into trend_moment table if not exist yet and update if exist
-                                            $sql_tm = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}' AND id_sale='{$id_sale}'";
+                                            $sql_tm = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
                                             $result_tm = $conn->query($sql_tm);
                                             // hitung $result_tm->num_rows
-                                            // INSERT INTO `trends_moment`(`id`, `id_item`, `month`, `time_x`, `year`, `sales_real`, `a`, `b`, `trendMoment`, `averageSold`, `indexMusim`, `forecast`, `ape`, `accuracy`) VALUES ('[value-1]','[value-2]','[value-3]','[value-4]','[value-5]','[value-6]','[value-7]','[value-8]','[value-9]','[value-10]','[value-11]','[value-12]','[value-13]','[value-14]')
+                                            // INSERT INTO `trends_moment`(`id`, `id_item`, `id_sale`, `month`, `time_x`, `year`, `sales_real`, `a`, `b`, `y`, `averageSold`, `indexMusim`, `forecast`, `ape`, `mape`, `accuracy`) VALUES ('[value-1]','[value-2]','[value-3]','[value-4]','[value-5]','[value-6]','[value-7]','[value-8]','[value-9]','[value-10]','[value-11]','[value-12]','[value-13]','[value-14]','[value-15]','[value-16]')
                                             if ($result_tm->num_rows == 0) {
-                                                $sql_insert_tm = "INSERT INTO trends_moment (id_item, id_sale, month, time_x, year, sales_real, a, b, trendMoment, averageSold, indexMusim, forecast, ape, mape, accuracy) VALUES ('{$id_item}', '{$id_sale}', '{$month}', '{$time_x}', '{$year}', '{$sales_real}', '{$a}', '{$b}', '{$trendMoment}', '{$averageSold}', '{$indexMusim}', '{$forecast}', '{$ape}', '{$mape}', '{$realaccuracy}')";
+                                                $sql_insert_tm = "INSERT INTO trends_moment (id_item, id_sale, month, time_x, year, sales_real, a, b, y, averageSold, indexMusim, forecast, ape, mape, accuracy) VALUES ('{$id_item}','{$id_sale}','{$month}','{$time_x}','{$year}','{$sales_real}','{$a}','{$b}','{$y}','{$averageSold}','{$indexMusim}','{$forecast}','{$ape}','{$mape}','{$accuracy}')";
                                                 $result_insert_tm = $conn->query($sql_insert_tm);
                                             } else {
-                                                $sql_update_tm = "UPDATE trends_moment SET id_item='{$id_item}', id_sale='{$id_sale}', month='{$month}', time_x='{$time_x}', year='{$year}', sales_real='{$sales_real}', a='{$a}', b='{$b}', trendMoment='{$trendMoment}', averageSold='{$averageSold}', indexMusim='{$indexMusim}', forecast='{$forecast}', ape='{$ape}', mape='{$mape}', accuracy='{$realaccuracy}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}' AND id_sale='{$id_sale}'";
+                                                $sql_update_tm = "UPDATE trends_moment SET id_sale='{$id_sale}', time_x='{$time_x}', sales_real='{$sales_real}', a='{$a}', b='{$b}', y='{$y}', averageSold='{$averageSold}', indexMusim='{$indexMusim}', forecast='{$forecast}', ape='{$ape}', mape='{$mape}', accuracy='{$accuracy}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
                                                 $result_update_tm = $conn->query($sql_update_tm);
                                             }
                                         }
-                                        $mape = calculateMAPE($Factual, $Fforecast);
-                                        // update mape trends_moment
-                                        $sql_update_tm = "UPDATE trends_moment SET mape='{$mape}' WHERE id_item='{$id_item}'";
-                                        $result_update_tm = $conn->query($sql_update_tm);
-                                        // echo "<pre>";
-                                        // print_r($dataTrendMoments);
-                                        // echo "</pre>";
+                                        
+                                        // }
+                                        // $mape = calculateMAPE($Factual, $Fforecast);
+                                        // // update mape trends_moment
+                                        // $sql_update_tm = "UPDATE trends_moment SET mape='{$mape}' WHERE id_item='{$id_item}'";
+                                        // $result_update_tm = $conn->query($sql_update_tm);
+                                        // // echo "<pre>";
+                                        // // print_r($dataTrendMoments);
+                                        // // echo "</pre>";
                                     }
                                     break;
                                 }

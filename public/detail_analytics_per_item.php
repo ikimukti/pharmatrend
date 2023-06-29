@@ -58,17 +58,18 @@ while ($row = mysqli_fetch_assoc($result)) {
     $labels[] = $label;
 
     $sales_real = 0;
-    $trendMoment = 0;
+    $forecast = 0;
 
     // ambil data dari trends_moment dan tambahkan ke array data
     $sql = "SELECT * FROM trends_moment WHERE month = $month AND year = $year AND id_item = {$_GET['id']}";
     $result2 = mysqli_query($conn, $sql);
     $row2 = mysqli_fetch_assoc($result2);
 
+
     // jika data tidak ada, maka isi dengan 0
     if ($row2 != null) {
         $sales_real = $row2['sales_real'];
-        $trendMoment = $row2['trendMoment'];
+        $forecast = $row2['forecast'];
     }
 
     // Tambahkan jumlah barang yang terjual ke array data
@@ -77,7 +78,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         'price' => $row['price'],
         'revenue' => $row['sold'] * $row['price'],
         'sales_real' => $sales_real,
-        'trendMoment' => $trendMoment,
+        'forecast' => $forecast
     ];
 }
 // Mengubah struktur data untuk hanya memuat nilai 'value'
@@ -87,7 +88,7 @@ $values = array_map(function ($item) {
 
 // Mengubah struktur data untuk hanya memuat nilai 'trendMoment'
 $trendMoments = array_map(function ($item) {
-    return $item['trendMoment'];
+    return $item['forecast'];
 }, $data);
 
 // Mengubah format array menjadi string JSON
@@ -141,7 +142,7 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Items - ARIPSKRIPSI</title>
+    <title>Items - PharmaTrend</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap"

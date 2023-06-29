@@ -13,31 +13,9 @@ if ($conn->connect_error) {
 
 # 1 tahun saja
 $currentYear = date('Y'); // Tahun saat ini
-$twoYearsAgo = $currentYear - 3; // 3 tahun sebelumnya
 
-// Query untuk mengambil data penjualan berdasarkan id_item dan rentang tahun kemudian join dengan tabel items dan users
-$query = "SELECT sales.id, sales.id_item, sales.sold, sales.month, sales.year, items.id, items.code, items.name, items.unit, items.price, items.stock, items.created_at, items.updated_at, items.id_user, users.id, users.fullname, users.email, users.phone, users.address, users.photo, users.created_at, users.updated_at, clustering.category AS category, trends_moment.indexMusim, trends_moment.ape, trends_moment.mape, trends_moment.accuracy, trends_moment.trendMoment, trends_moment.forecast
-FROM sales 
-INNER JOIN items ON sales.id_item = items.id 
-INNER JOIN users ON items.id_user = users.id 
-INNER JOIN sales_cluster ON items.id = sales_cluster.id_item 
-INNER JOIN clustering ON sales_cluster.nearest_cluster = clustering.id
-INNER JOIN trends_moment ON sales.id = trends_moment.id_sale
-WHERE sales.id_item = {$_GET['id']} AND sales.year BETWEEN $twoYearsAgo AND $currentYear 
-ORDER BY sales.year DESC, CASE sales.month 
-    WHEN 1 THEN 1 
-    WHEN 2 THEN 2 
-    WHEN 3 THEN 3 
-    WHEN 4 THEN 4 
-    WHEN 5 THEN 5 
-    WHEN 6 THEN 6 
-    WHEN 7 THEN 7 
-    WHEN 8 THEN 8 
-    WHEN 9 THEN 9 
-    WHEN 10 THEN 10 
-    WHEN 11 THEN 11 
-    WHEN 12 THEN 12 
-END DESC";
+$query = "SELECT * FROM trends_moment WHERE id_item = {$_GET['id']} AND year = $currentYear ORDER BY month DESC";
+
 
 
 $result = mysqli_query($conn, $query);
@@ -231,21 +209,35 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                     // Ambil bulan dan tahun dari kolom "month" dan "year"
                                     $month = $row['month'];
                                     $year = $row['year'];
+                                    $id_item = $row['id_item'];
+                                    $trend = $row['forecast'];
 
                                     // Buat label bulan/tahun dalam format yang diinginkan (misalnya "Jan 2023")
                                     $label = date('M Y', strtotime("$year-$month-01"));
 
                                     // Tambahkan label ke array labels
                                     $labels[] = $label;
-                            
-                                    
+
+                                    $sqlSold = "SELECT * FROM sales WHERE id_item = '$id_item' AND month = '$month' AND year = '$year'";
+                                    $resultSold = mysqli_query($conn, $sqlSold);
+                                    $rowSold = mysqli_fetch_assoc($resultSold);
+
+                                    if ($rowSold) {
+                                        // Data penjualan ditemukan
+                                        $sold = $rowSold['sold'];
+                                        // Lakukan tindakan yang diinginkan dengan data penjualan yang ditemukan
+                                    } else {
+                                        // Data penjualan tidak ditemukan
+                                        // Lakukan tindakan alternatif yang sesuai dalam kasus ini
+                                        $sold = 0;
+                                    }
                                     ?>
                                     <tr>
                                         <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $no++; ?></td>
                                         <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $label; ?></td>
-                                        <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $row['sold']; ?></td>
+                                        <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $sold; ?></td>
                                         <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $row['indexMusim']; ?></td>
-                                        <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $row['trendMoment']; ?></td>
+                                        <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $trend; ?></td>
                                         <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $row['ape']; ?> %</td>
                                         <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $row['mape']; ?> %</td>
                                         <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $row['accuracy']; ?> %</td>
