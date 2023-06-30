@@ -87,6 +87,24 @@ if(isset($_GET  ["search"])){
                         ?>
                         <!-- Form Profile -->
                         <div class="flex flex-col gap-4 w-full">
+                            <!-- session info error and success -->
+                            <?php
+                                if(isset($_SESSION["info"])){
+                                    $info = $_SESSION["info"];
+                                    echo "<div class='bg-red-500 text-white p-2 rounded-md'>$info</div>";
+                                    unset($_SESSION["info"]);
+                                }
+                                if(isset($_SESSION["success"])){
+                                    $success = $_SESSION["success"];
+                                    echo "<div class='bg-green-500 text-white p-2 rounded-md'>$success</div>";
+                                    unset($_SESSION["success"]);
+                                }
+                                if(isset($_SESSION["error"])){
+                                    $error = $_SESSION["error"];
+                                    echo "<div class='bg-red-500 text-white p-2 rounded-md'>$error</div>";
+                                    unset($_SESSION["error"]);
+                                }
+                            ?>
                             <form action="edit_profile.php" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4 w-full">
                                 <!-- Profile Preview -->
                                 <div class="flex flex-col gap-2">

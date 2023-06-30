@@ -139,7 +139,11 @@ if (isset($_GET["search"])) {
                                                 <td class="py-2 px-4 border-b border-gray-300"><?php echo $no++; ?></td>
                                                 <td class="py-2 px-4 border-b border-gray-300"><?php echo $row["fullname"]; ?></td>
                                                 <td class="py-2 px-4 border-b border-gray-300"><?php echo $row["email"]; ?></td>
-                                                <td class="py-2 px-4 border-b border-gray-300"><?php echo $row["role"]; ?></td>
+                                                <td class="py-2 px-4 border-b border-gray-300">
+                                                    <span class=" text-white px-2 py-1 rounded<?php echo $row["role"] == "admin" ? " bg-teal-200" : " bg-purple-200"; ?>">
+                                                        <?php echo $row["role"]; ?>
+                                                    </span>
+                                                </td>
                                                 <td class="py-2 px-4 border-b border-gray-300 space-x-2">
                                                     <a href="edit_user.php?id=<?php echo $row["id"]; ?>"
                                                         class="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-600">

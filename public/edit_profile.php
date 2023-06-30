@@ -46,9 +46,15 @@ if (isset($_POST["update"])) {
             unlink("img/profile/" . $row["photo"]);
         }
     }
+    $_SESSION["fullname"] = $fullname;
+    $_SESSION["email"] = $email;
+    $_SESSION["phone"] = $phone;
+    $_SESSION["address"] = $address;
+    
 
     // Redirect ke halaman profil
     header("Location: profile.php");
+    $_SESSION["success"] = "Profil berhasil diperbarui";
     die();
 }
 

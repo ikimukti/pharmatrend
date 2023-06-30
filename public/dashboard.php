@@ -8,7 +8,10 @@ require_once("config.php");
 
 $year = date("Y");
 $month = date("m");
-
+$reload = false;
+if (isset($_GET["reload"]) && $_GET["reload"] == "true") {
+    $reload = true;
+}
 // Menghitung Month's Revenue
 $monthRevenueQuery = "SELECT SUM(s.sold * i.price) AS monthRevenue
                       FROM sales s
@@ -175,9 +178,20 @@ function calculateMAPE($actual, $forecast) {
                     <hr>
                     <!-- content -->
                     <div class="flex flex-col gap-4 mt-4">
-                        <h1 class="text-2xl font-bold">Analytics</h1>
-                        <p class="text-gray-700">Welcome back, <?php echo $_SESSION['fullname']; ?> !, here's what's
-                            happening with your store today.</p>
+                        <div class="flex flex-row justify-between items-center">
+                            <div class="flex flex-col gap-2">
+                                <h1 class="text-2xl font-bold">Dashboard</h1>
+                                <p class="text-gray-700">Welcome back, <?php echo $_SESSION['fullname']; ?> !, here's what's
+                                    happening with your store today.</p>
+                            </div>
+                            <!-- btn reload -->
+                            <div class="flex flex-row gap-2 mt-4">
+                                <a class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" href="dashboard.php?reload=true">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Reload</span>
+                                </a>
+                            </div>
+                        </div>
                         <div class="flex flex-col gap-4">
                         <?php
                         $toogleBtnAnalytics = false;
@@ -205,7 +219,8 @@ function calculateMAPE($actual, $forecast) {
                         }
                         if ($toogleBtnAnalyticsCounter == 0) {
                             $toogleBtnAnalytics = true;
-                            // 2 tahun lalu
+                            if ($reload) {
+                                // 2 tahun lalu
                             $year = date("Y") - 2;
                             // query untuk mendapatkan semua item yang terjual pada 2 tahun lalu rata-rata sold per month
                             $sales2yearago = "SELECT i.id, i.name, AVG(s.sold) AS total_sold, i.price AS price, i.unit AS unit FROM items i JOIN sales s ON i.id = s.id_item WHERE year = '$year' OR year = '$year' + 1 GROUP BY i.id, i.name";
@@ -937,10 +952,25 @@ function calculateMAPE($actual, $forecast) {
                                 $totalCluster2 = 0;
                                 $totalCluster3 = 0;
                             }
-
+                            }
                         }
                         ?>
                         </div>
+                        <!-- massage if reload button and times -->
+                        <?php 
+                        if (isset($_GET['reload'])) {
+                            $reload = $_GET['reload'];
+                            if ($reload == 'true') { ?>
+                        <div class='flex flex-row gap-2 justify-between items-center bg-green-500 text-white p-2 rounded-md shadow-md'>
+                            <div class='flex flex-row gap-2 items-center'>
+                                <span class='font-bold'>Data berhasil diupdate</span>
+                                <span class='font-bold text-sm'><?php echo date('H:i:s'); ?></span>
+                            </div>
+                        </div>
+                        <?php
+                            }
+                        }
+                        ?>
                         <!-- item auto row 3 wrap -->
                         <div class="flex flex-wrap gap-4 items-center">
                             <!-- card info flex forecasting -->

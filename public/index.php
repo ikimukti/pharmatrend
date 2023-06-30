@@ -32,9 +32,10 @@ if(isset($_SESSION["id"])){
     </header>
     <div class="container-fluid mx-auto h-screen">
         <div class="flex flex-col items-center justify-center h-screen w-full content-center">
-            <h1 class="text-5xl font-bold text-gray-900">Selamat Datang di PharmaTrend</h1>
-            <p class="text-2xl text-gray-600">Aplikasi untuk memantau penjualan obat di PBF PT. Lestari Jaya Farma</p>
-            <a class="bg-blue-400 text-white px-4 py-2 rounded-md mx-4 my-2 hover:bg-blue-600" href="signin.php">
+            <h1 class="text-5xl font-bold text-gray-900">Welcome to PharmaTrend</h1>
+            <p class="text-2xl text-gray-600">An application to monitor drug sales at PT. Lestari Jaya Farma's Pharmacy</p>
+            <a class="bg-blue-400 text-white px-4 py-2 rounded-md mx-4 my-2 hover:bg-blue-600 transition duration-200 ease-in-out space-y-2" href="signin.php">
+                <i class="fas fa-sign-in-alt"></i> 
                 Sign In
             </a>
         </div>

@@ -113,9 +113,10 @@ if(isset($_SESSION["id"])){
                             <div class="flex flex-row items-end justify-center w-full mt-4">
                                 <a href="signin.php" class="text-gray-700 mt-4 text-xs mb-6 px-4 py-3"> Already
                                     have an account? Sign In</a>
-                                <input type="submit" name="sumbit"
-                                    class="bg-blue-400 text-white px-4 py-3 rounded mb-6 hover:bg-blue-600"
-                                    value="Sign Up">
+                                <button class="bg-blue-400 text-white px-4 py-3 rounded mb-6 hover:bg-blue-600" type="submit" name="submit">
+                                    <i class="fas fa-sign-in-alt mr-2"></i>
+                                    Sign Up
+                                </button>
                             </div>
                         </div>
                     </form>

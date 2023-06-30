@@ -117,9 +117,9 @@ if(isset($_SESSION["id"])){
                                 <a href="signup.php" class="text-gray-700 mt-4 text-xs mb-6 px-4 py-3">Don't have an
                                     account?
                                     Sign Up</a>
-                                <input type="submit" value="Sign In" name="submit"
-                                    class="bg-blue-400 text-white px-4 py-3 rounded mb-6 hover:bg-blue-600">
-
+                                <button class="bg-blue-400 text-white px-4 py-3 rounded mb-6 hover:bg-blue-600" type="submit" name="submit">
+                                    Sign In
+                                </button>
                             </div>
                         </div>
                     </form>

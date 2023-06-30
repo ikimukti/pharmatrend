@@ -201,9 +201,18 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                     <?php
                                     $no = 1;
                                     // Inisialisasi array untuk menyimpan label dan data
-                                $labels = [];
-                                $data = [];
+                                    $labels = [];
+                                    $data = [];
+                                    $totalAPE = 0;
+                                    $totalAccuracy = 0;
+                                    $totalMAPE = 0;
+                                    $firstDate = '';
+                                    $lastDate = '';
+                                    $totalIndexMusim = 0;
+                                    $totalTrendMoment = 0;
+                                    $totalAktual = 0;
 
+                                    $jmdata = 0;
                                 // Loop melalui hasil query dan tambahkan data ke array
                                 while ($row = mysqli_fetch_assoc($result)) {
                                     // Ambil bulan dan tahun dari kolom "month" dan "year"
@@ -211,26 +220,44 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                     $year = $row['year'];
                                     $id_item = $row['id_item'];
                                     $trend = $row['forecast'];
-
+                                    $totalAPE += $row['ape'];
+                                    $totalAccuracy += $row['accuracy'];
+                                    $totalMAPE += $row['mape'];
+                                    $totalIndexMusim += $row['indexMusim'];
+                                    $totalTrendMoment += $row['forecast'];
+                                    
+                                    
+                                    
+                                    // get first date
+                                    if ($firstDate == '') {
+                                        $lastDate = date('d M Y', strtotime("$year-$month-01"));
+                                    }
+                                    
+                                    
+                                    
                                     // Buat label bulan/tahun dalam format yang diinginkan (misalnya "Jan 2023")
                                     $label = date('M Y', strtotime("$year-$month-01"));
-
+                                    
                                     // Tambahkan label ke array labels
                                     $labels[] = $label;
-
+                                    
                                     $sqlSold = "SELECT * FROM sales WHERE id_item = '$id_item' AND month = '$month' AND year = '$year'";
                                     $resultSold = mysqli_query($conn, $sqlSold);
                                     $rowSold = mysqli_fetch_assoc($resultSold);
-
+                                    
                                     if ($rowSold) {
                                         // Data penjualan ditemukan
                                         $sold = $rowSold['sold'];
+                                        $firstDate = date('d M Y', strtotime("$year-$month-01"));
+                                        $jmdata++;
+                                        // get last date
                                         // Lakukan tindakan yang diinginkan dengan data penjualan yang ditemukan
                                     } else {
                                         // Data penjualan tidak ditemukan
                                         // Lakukan tindakan alternatif yang sesuai dalam kasus ini
                                         $sold = 0;
                                     }
+                                    $totalAktual += $sold;
                                     ?>
                                     <tr>
                                         <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo $no++; ?></td>
@@ -247,6 +274,41 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                     ?>
                                 </tbody>
                             </table>
+                        </div>
+                        <!-- explanation of the results of trend moment analysis yielding APE, ACCURACY and MAPE values with average results -->
+                        <div class="mt-4">
+                            <h2 class="text-xl font-bold">Results:</h2>
+                            <p class="mt-2">The results of the trend moment analysis are as follows:</p>
+                            <p class="mt-2">
+                                After analyzing the trend moment, from <?php echo $firstDate; ?> to <?php echo $lastDate; ?> period using previous sales data, the drug named 
+                                <span class="text-red-500"><?php echo $item['name']; ?></span> has a trend moment value of
+                                yielded the following results: the average APE (Absolute Percentage Error) value is 
+                                <span class="text-red-500"><?php echo number_format($totalAPE / $jmdata, 2); ?>%</span>, 
+                                the average accuracy is 
+                                <span class="text-red-500"><?php echo number_format($totalAccuracy / $jmdata, 2); ?>%</span>, 
+                                and the average MAPE (Mean Absolute Percentage Error) value is 
+                                <span class="text-red-500"><?php echo number_format($totalMAPE / $jmdata, 2); ?>%</span>. 
+                                Therefore, it can be concluded that the trend moment prediction for the drug <?php echo $item['name']; ?> in the 
+                                <?php echo $firstDate; ?> to <?php echo $lastDate; ?> period has an accuracy level of <?php if($totalMAPE / $jmdata < 10) { ?>
+                                    <span class="bg-green-500 text-white px-2 py-1 rounded">Very Good</span>
+                                <?php } elseif($totalMAPE / $jmdata < 20) { ?>
+                                    <span class="bg-green-500 text-white px-2 py-1 rounded">Good</span>
+                                <?php } elseif($totalMAPE / $jmdata < 50) { ?>
+                                    <span class="bg-yellow-500 text-white px-2 py-1 rounded">Acceptable</span>
+                                <?php } else { ?>
+                                    <span class="bg-red-500 text-white px-2 py-1 rounded">Poor</span>
+                                <?php } ?>.
+                            </p>
+                            <ul class="list-disc pl-6 mt-2">
+                                <li>Total APE: <?php echo number_format($totalAPE, 2); ?> %</li>
+                                <li>Total Accuracy: <?php echo number_format($totalAccuracy, 2); ?> %</li>
+                                <li>Total MAPE: <?php echo number_format($totalMAPE, 2); ?> %</li>
+                            </ul>
+                            <ul class="list-disc pl-6">
+                                <li>Average APE: <?php echo number_format($totalAPE / $jmdata, 2); ?> %</li>
+                                <li>Average Accuracy: <?php echo number_format($totalAccuracy / $jmdata, 2); ?> %</li>
+                                <li>Average MAPE: <?php echo number_format($totalMAPE / $jmdata, 2); ?> %</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
