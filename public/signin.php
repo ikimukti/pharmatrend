@@ -128,7 +128,7 @@ if(isset($_SESSION["id"])){
         </div>
     </div>
     <footer class="w-full mx-auto text-center py-4 fixed bottom-0">
-        <p class="text-gray-700">Skripsi Arip &copy; 2023</p>
+        <p class="text-gray-700">PharmaTrend &copy; 2023</p>
     </footer>
 </body>
 
