@@ -109,7 +109,7 @@ if(!isset($_SESSION["id"])){
                                                 echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Email already exists</div>";
                                             }else{
                                                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                                                $sql = "INSERT INTO users (fullname, email, password, phone, address, photo, role, status, created_at, updated_at) VALUES ('$fullname', '$email', '$hashedPassword', '$phone', '$address', '$photo_path', '$role', '$status', '$created_at', '$updated_at')";
+                                                $sql = "INSERT INTO users (fullname, email, password, phone, address, photo, role, status, created_at, updated_at) VALUES ('$fullname', '$email', '$hashedPassword', '$phone', '$address', '$photo_name', '$role', '$status', '$created_at', '$updated_at')";
                                                 // save to database and check if success or not and redirect to users.php
                                                 if(mysqli_query($conn, $sql)){
                                                     // header already sent error fix
