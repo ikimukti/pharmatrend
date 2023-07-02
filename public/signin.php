@@ -53,9 +53,9 @@ if(isset($_SESSION["id"])){
                                     $_SESSION["photo"] = $row["photo"];
                                     ob_start();
                                     if(!headers_sent()){
-                                        header("Location: items.php");
+                                        header("Location: dashboard.php");
                                     } else{
-                                        echo "<script>window.location.href='items.php';</script>";
+                                        echo "<script>window.location.href='dashboard.php';</script>";
                                     }
                                     print_r($_SESSION);
                                     die();

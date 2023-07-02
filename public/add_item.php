@@ -71,6 +71,7 @@ if(!isset($_SESSION["id"])){
                                     if(isset($_POST["submit"])){
                                         $name = $_POST["name"];
                                         $code = $_POST["code"];
+                                        $unit = $_POST["unit"];
                                         $price = $_POST["price"];
                                         // $stock = $_POST["stock"];
                                         $stock = 0;
@@ -100,7 +101,7 @@ if(!isset($_SESSION["id"])){
                                             if(mysqli_num_rows($query) > 0){
                                                 echo "<div class='bg-red-200 text-red-700 border-2 border-red-700 rounded-md p-2'>Code or name already exist</div>";
                                             }else{
-                                                $sql = "INSERT INTO items (name, code, price, stock, created_at, updated_at, id_user) VALUES ('$name', '$code', '$price', '$stock', '$created_at', '$updated_at', '$id_user')";
+                                                $sql = "INSERT INTO items (name, code, unit, price, stock, created_at, updated_at, id_user) VALUES ('$name', '$code', '$unit', '$price', '$stock', '$created_at', '$updated_at', '$id_user')";
                                                 // save to database and check if success or not and redirect to items.php
                                                 if(mysqli_query($conn, $sql)){
                                                     // header already sent error fix

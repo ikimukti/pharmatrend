@@ -111,7 +111,7 @@ if(isset($_GET["search"])){
                             <!-- flex row -->
                             <div class="flex flex-row items-center justify-between">
                                 <div class="flex flex-row items-center gap-2">
-                                    <h1 class="text-2xl font-bold">Items</h1>
+                                    <h1 class="text-2xl font-bold">Analytics Per Item</h1>
 
                                 </div>
                                 <div class="flex flex-row items-center gap-2">

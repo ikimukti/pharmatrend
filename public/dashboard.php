@@ -201,7 +201,7 @@ function calculateMAPE($actual, $forecast) {
                             $salesName = $salesRow['name'];
                             $salesTotalMonth = $salesRow['total_month'];
                             $monthBtn = date("m") + 24;
-                            if($salesTotalMonth <= $monthBtn){
+                            if($salesTotalMonth < $monthBtn){
                         ?>
                         <!-- item link to sales per item -->
                         <div href="sales_per_item.php?id=<?php echo $salesId; ?>" class="w-full h-auto bg-white rounded-md shadow-md p-4 flex flex-row gap-4 items-center">

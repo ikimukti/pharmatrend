@@ -148,68 +148,73 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                 </div>
 
                             </div>
-                            <!-- information item -->
-                            <div class="flex flex-col gap-2">
-                                <div>
-                                    <i class="fas fa-info-circle"></i>
-                                    <span class="font-bold">Item Code:</span>
-                                    <span><?php echo $item['code']; ?></span>
+                            <div class="flex flex-row items-center gap-2">
+                                <div class="flex-1 flex-col gap-2">
+                                    <div>
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="font-bold">Item Code:</span>
+                                        <span><?php echo $item['code']; ?></span>
+                                    </div>
+                                    <div>
+                                        <!-- box -->
+                                        <i class="fas fa-box"></i>
+                                        <span class="font-bold">Item Name:</span>
+                                        <span><?php echo $item['name']; ?></span>
+                                    </div>
+                                    <div>
+                                        <!-- unit -->
+                                        <i class="fas fa-boxes"></i>
+                                        <span class="font-bold">Unit:</span>
+                                        <span><?php echo $item['unit']; ?></span>
+                                    </div>
+                                    <div>
+                                        <!-- Price -->
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span class="font-bold">Price:</span>
+                                        <span>Rp. <?php echo number_format($item['price'], 2, ',', '.'); ?></span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <!-- box -->
-                                    <i class="fas fa-box"></i>
-                                    <span class="font-bold">Item Name:</span>
-                                    <span><?php echo $item['name']; ?></span>
-                                </div>
-                                <div>
-                                    <!-- unit -->
-                                    <i class="fas fa-boxes"></i>
-                                    <span class="font-bold">Unit:</span>
-                                    <span><?php echo $item['unit']; ?></span>
-                                </div>
-                                <div>
-                                    <!-- Price -->
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    <span class="font-bold">Price:</span>
-                                    <span>Rp. <?php echo number_format($item['price'], 2, ',', '.'); ?></span>
-                                </div>
-                                <div>
-                                    <i class="fas fa-calendar-day"></i>
-                                    <span class="font-bold">Created At:</span>
-                                    <span><?php echo date('d M Y', strtotime($item['created_at'])); ?></span>
-                                </div>
-                                <div>
-                                    <i class="fas fa-calendar-day"></i>
-                                    <span class="font-bold">Updated At:</span>
-                                    <span><?php echo date('d M Y', strtotime($item['updated_at'])); ?></span>
-                                </div>
-                                <div>
-                                    <!-- user -->
-                                    <i class="fas fa-user"></i>
-                                    <span class="font-bold">Added By:</span>
-                                    <span>
-                                        <?php
-                                        // First capital per word
-                                        echo ucwords($user['fullname']);
-                                        ?></span>
-                                </div>
-                                <div>
-                                    <!-- Revenue -->
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    <span class="font-bold">Total Revenue:</span>
-                                    <span><?php echo number_format($totalRevenue, 0, ',', '.'); ?> pcs sold (Rp.
-                                        <?php echo number_format($totalRevenue * $item['price'], 2, ',', '.'); ?>)
-                                    </span>
-                                </div>
-                                <div>
-                                    <!-- Revenue -->
-                                    <i class="fas fa-money-bill-wave"></i>
-                                    <span class="font-bold">Current Month Revenue:</span>
-                                    <span><?php echo number_format($currentMonthRevenue, 0, ',', '.'); ?> pcs sold
-                                        <?php echo number_format($currentMonthRevenue * $item['price'], 2, ',', '.'); ?>)
-                                    </span>
+                                <div class="flex-1 flex-col gap-2">
+                                    <div>
+                                        <i class="fas fa-calendar-day"></i>
+                                        <span class="font-bold">Created At:</span>
+                                        <span><?php echo date('d M Y', strtotime($item['created_at'])); ?></span>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-calendar-day"></i>
+                                        <span class="font-bold">Updated At:</span>
+                                        <span><?php echo date('d M Y', strtotime($item['updated_at'])); ?></span>
+                                    </div>
+                                    <div>
+                                        <!-- user -->
+                                        <i class="fas fa-user"></i>
+                                        <span class="font-bold">Added By:</span>
+                                        <span>
+                                            <?php
+                                            // First capital per word
+                                            echo ucwords($user['fullname']);
+                                            ?></span>
+                                    </div>
+                                    <div>
+                                        <!-- Revenue -->
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span class="font-bold">Total Revenue:</span>
+                                        <span><?php echo number_format($totalRevenue, 0, ',', '.'); ?> pcs sold (Rp.
+                                            <?php echo number_format($totalRevenue * $item['price'], 2, ',', '.'); ?>)
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <!-- Revenue -->
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        <span class="font-bold">Current Month Revenue:</span>
+                                        <span><?php echo number_format($currentMonthRevenue, 0, ',', '.'); ?> pcs sold
+                                            <?php echo number_format($currentMonthRevenue * $item['price'], 2, ',', '.'); ?>)
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
+                            <!-- information item -->
+                            
                             <div class="w-full h-auto border-2 border-gray-200 rounded-md py-2 px-2">
                                 <canvas id="salesChart"></canvas>
                             </div>

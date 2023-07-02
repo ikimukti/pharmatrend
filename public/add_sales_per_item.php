@@ -126,6 +126,7 @@ if(mysqli_num_rows(mysqli_query($conn, $sql)) == 0 || $_GET["year"] > date('Y') 
                                             <p class="text-sm text-slate-500 truncate">
                                                 <?php
                                                 // Loop untuk bulan
+                                                $nextMonthThisYear = date('F', mktime(0, 0, 0, date('m') + 1, 1));
                                                 for ($month = 1; $month <= 12; $month++) {
                                                     $monthName = date('F', mktime(0, 0, 0, $month, 1));
                                                     // Cek apakah bulan $month dan tahun $year sudah ada di database
@@ -150,8 +151,12 @@ if(mysqli_num_rows(mysqli_query($conn, $sql)) == 0 || $_GET["year"] > date('Y') 
                                                     } else {
                                                         $checkMark = '<i class="fas fa-times text-red-500"></i>';
                                                     }
-                                                    if ($year == $_GET["year"] && $checkMark == '<i class="fas fa-times text-red-500"></i>') {
-                                                        array_push($monthSalesNotExists, $monthName);
+                                                    if ($year == $_GET["year"] && $checkMark == '<i class="fas fa-times text-red-500"></i>' ) {
+                                                        if($monthName != $nextMonthThisYear && $year == $currentYear){
+                                                            array_push($monthSalesNotExists, $monthName);
+                                                        } else if($year != $currentYear){
+                                                            array_push($monthSalesNotExists, $monthName);
+                                                        }
                                                     }
                                                     // tampilkan sampai bulan saat ini
                                                     if ($year == $currentYear && $month > $currentMonth) {

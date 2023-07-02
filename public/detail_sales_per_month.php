@@ -51,7 +51,9 @@ while ($row = mysqli_fetch_assoc($result)) {
 }
 
 // Mengurutkan data secara descending berdasarkan jumlah terjual
-arsort($data);
+// array_multisort($data, SORT_DESC, $labels);
+array_multisort($data, SORT_DESC, $labels);
+
 // Mengambil 10 item tertinggi
 $topLabels = array_slice($labels, 0, 10);
 $topData = array_slice($data, 0, 10);

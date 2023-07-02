@@ -168,7 +168,7 @@ function calculateMAPE($actual, $forecast) {
                         <div>
                             <a href="dashboard.php" class="text-gray-700 hover:text-gray-950"><i class="fas fa-home"></i></a>
                             <span class="text-gray-700">/</span>
-                            <a href="dashboard.php" class="text-gray-700 hover:text-gray-950">Dashboard</a>
+                            <a href="analytics.php" class="text-gray-700 hover:text-gray-950">Analytics</a>
                         </div>
                         <button class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" onclick="window.history.back();">
                             <i class="fas fa-arrow-left"></i>
@@ -201,7 +201,7 @@ function calculateMAPE($actual, $forecast) {
                             $salesName = $salesRow['name'];
                             $salesTotalMonth = $salesRow['total_month'];
                             $monthBtn = date("m") + 24;
-                            if($salesTotalMonth <= $monthBtn){
+                            if($salesTotalMonth < $monthBtn){
                         ?>
                         <!-- item link to sales per item -->
                         <div href="sales_per_item.php?id=<?php echo $salesId; ?>" class="w-full h-auto bg-white rounded-md shadow-md p-4 flex flex-row gap-4 items-center">

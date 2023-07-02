@@ -228,7 +228,7 @@ LIMIT $start, $limit
                                                 <!-- jika total bulan kurang dari bulan yang ada dari 3 tahun lalu maka tampilkan tombol add sales item -->
                                                 <?php
                                                     // $monthBtn hitung bulan 2 tahun lalu
-                                                    $monthBtn = date("m") + 24;
+                                                    $monthBtn = date("m") + 24 - 1;
                                                     if($sale["total_month"] <= $monthBtn){
                                                         // Tahun sekarang
                                                         $year = date("Y");
