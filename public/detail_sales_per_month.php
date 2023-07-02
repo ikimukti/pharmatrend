@@ -145,19 +145,19 @@ $result2 = mysqli_query($conn, $query2);
                     <!-- content -->
                     <div class="flex flex-col gap-4 mt-4">
                         <div class="flex flex-col gap-2">
-                            <div class="my-8">
+                            <div class="">
                                 <h1 class="text-3xl font-bold text-gray-800">Detail Sales Per Month</h1>
                                 <p class="mt-2 text-sm text-gray-500">Items that have been sold in a certain month and year.</p>
                             </div>
                             <!-- Information This Month -->
-                            <div class="my-8">
+                            <div class="">
                                 <h2 class="text-md text-gray-800">Month: <?php echo $month; ?></h2>
                                 <h2 class="text-md text-gray-800">Year: <?php echo $year; ?></h2>
                                 <h2 class="text-md text-gray-800">Total Items Sold: <?php echo number_format($totalSold, 0, ',', '.'); ?></h2>
                                 <h2 class="text-md text-gray-800">Total Revenue: Rp <?php echo number_format($revenue, 2, ',', '.'); ?></h2>
                             </div>
                             <div class="w-full h-auto border-2 border-gray-200 rounded-md py-2 px-2">
-                                <canvas id="salesChart"></canvas>
+                                <canvas id="salesChart" height="100px"></canvas>
                             </div>
                             <div class="w-full h-auto border-2 border-gray-200 rounded-md py-2 px-2">
                                 <table class="w-full mt-4">
