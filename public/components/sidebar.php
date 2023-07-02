@@ -9,7 +9,7 @@ if(!isset($_SESSION["id"])){
 <div class="w-2/12 h-[calc(100vh-3.5rem)] border-r-2 border-gray-200 overflow-y-auto overflow-hidden no-scrollbar">
     <div class="flex flex-col items-center justify-center mt-4  p-2 space-y-2">
         <h1 class="text-lg"><?php echo $_SESSION["fullname"]; ?></h1>
-        <img src="img/profile/<?php if($_SESSION["photo"] == ""){echo "profile.jpeg";}else{echo $_SESSION["photo"];} ?>"
+        <img src="<?php if($_SESSION["photo"] == ""){echo "img/profile/profile.jpeg";}else{echo "img/profile/".$_SESSION["photo"];} ?>"
             class="w-20 h-20 rounded-full object-cover">
         <div class="flex flex-row items-center justify-center gap-2">
             <span class="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">

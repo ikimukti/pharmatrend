@@ -8,7 +8,7 @@ if(!isset($_SESSION["id"])){
 require_once("config.php");
 if(!isset($_GET["search"])){
     ob_start();
-    header("Location: items.php?page=1&search=");
+    header("Location: sales.php?page=1&search=");
     die();
 }
 // item data with pagination and descending order

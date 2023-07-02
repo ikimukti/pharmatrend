@@ -16,7 +16,7 @@ $currentYear = date('Y'); // Tahun saat ini
 $twoYearsAgo = $currentYear - 3; // 3 tahun sebelumnya
 
 // Query untuk mengambil data penjualan berdasarkan id_item dan rentang tahun kemudian join dengan tabel items dan users
-$query = "SELECT sales.id, sales.id_item, sales.sold, sales.month, sales.year, items.id, items.code, items.name, items.unit, items.price, items.stock, items.created_at, items.updated_at, items.id_user, users.id, users.fullname, users.email, users.phone, users.address, users.photo, users.created_at, users.updated_at FROM sales INNER JOIN items ON sales.id_item = items.id INNER JOIN users ON items.id_user = users.id WHERE sales.id_item = {$_GET['id']} AND sales.year BETWEEN $twoYearsAgo AND $currentYear ORDER BY sales.year ASC, sales.month ASC";
+$query = "SELECT sales.id, sales.id_item, sales.sold, sales.month, sales.year, items.id, items.code, items.name, items.unit, items.price, items.stock, items.created_at, items.updated_at, items.id_user, users.id, users.fullname, users.email, users.phone, users.address, users.photo, users.created_at, users.updated_at FROM sales INNER JOIN items ON sales.id_item = items.id INNER JOIN users ON items.id_user = users.id WHERE sales.id_item = {$_GET['id']} AND sales.year BETWEEN $twoYearsAgo AND $currentYear ORDER BY sales.year ASC, CASE sales.month WHEN 1 THEN 1 WHEN 2 THEN 2 WHEN 3 THEN 3 WHEN 4 THEN 4 WHEN 5 THEN 5 WHEN 6 THEN 6 WHEN 7 THEN 7 WHEN 8 THEN 8 WHEN 9 THEN 9 WHEN 10 THEN 10 WHEN 11 THEN 11 WHEN 12 THEN 12 END ASC";
 
 $result = mysqli_query($conn, $query);
 
