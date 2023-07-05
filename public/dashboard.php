@@ -9,16 +9,8 @@ require_once("config.php");
 $year = date("Y");
 $month = date("m");
 $reload = false;
-$rcluster = false;
-$rforecast = false;
 if (isset($_GET["reload"]) && $_GET["reload"] == "true") {
     $reload = true;
-    if (isset($_GET["rcluster"]) && $_GET["rcluster"] == "true") {
-        $rcluster = true;
-    }
-    if (isset($_GET["rforecast"]) && $_GET["rforecast"] == "true") {
-        $rforecast = true;
-    }
 }
 // Menghitung Month's Revenue
 $monthRevenueQuery = "SELECT SUM(s.sold * i.price) AS monthRevenue
@@ -194,13 +186,9 @@ function calculateMAPE($actual, $forecast)
                             </div>
                             <!-- btn reload -->
                             <div class="flex flex-row gap-2 mt-4">
-                                <a class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" href="dashboard.php?reload=true&rcluster=true">
+                                <a class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" href="dashboard.php?reload=true">
                                     <i class="fas fa-sync-alt"></i>
-                                    <span>Reload Cluster</span>
-                                </a>
-                                <a class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" href="dashboard.php?reload=true&rforecast=true">
-                                    <i class="fas fa-sync-alt"></i>
-                                    <span>Reload Analytics</span>
+                                    <span>Reload</span>
                                 </a>
                             </div>
                         </div>
@@ -231,10 +219,13 @@ function calculateMAPE($actual, $forecast)
                             }
                             if ($toogleBtnAnalyticsCounter == 0) {
                                 $toogleBtnAnalytics = true;
-                                if ($reload == true) {
+                                if ($reload) {
+                                    // 2 tahun lalu
                                     $year = date("Y") - 2;
+                                    // query untuk mendapatkan semua item yang terjual pada 2 tahun lalu rata-rata sold per month
                                     $sales2yearago = "SELECT i.id, i.name, AVG(s.sold) AS total_sold, i.price AS price, i.unit AS unit FROM items i JOIN sales s ON i.id = s.id_item WHERE year = '$year' OR year = '$year' + 1 GROUP BY i.id, i.name";
                                     $salesResult = mysqli_query($conn, $sales2yearago);
+                                    // hitung data yang didapatkan
                                     $salesCount = mysqli_num_rows($salesResult);
                                     $salesAll = array();
                                     while ($salesRow = mysqli_fetch_assoc($salesResult)) {
@@ -256,13 +247,18 @@ function calculateMAPE($actual, $forecast)
                                     }
                                     $randomSales = array();
 
+                                    // Mendapatkan jumlah data yang tersedia
                                     $totalData = count($salesAll);
 
+                                    // Memastikan jumlah data yang tersedia cukup untuk diambil 3
                                     if ($totalData >= 3) {
+                                        // Mengacak urutan data dalam array
                                         shuffle($salesAll);
 
+                                        // Mengambil 3 data pertama setelah diacak
                                         $randomSales = array_slice($salesAll, 0, 3);
                                     } else {
+                                        // Jika jumlah data kurang dari 3, mengembalikan semua data
                                         $randomSales = $salesAll;
                                     }
                                     $bw1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $randomSales[1]['total_sold_per_1000'], $randomSales[0]['price_per_1000'], $randomSales[1]['price_per_1000']);
@@ -351,6 +347,16 @@ function calculateMAPE($actual, $forecast)
                                         array_push($salesCluster, $dataSales);
                                     }
                                     $rasio = $beetweenClassVariation / $totalWithinClassVariation;
+                                    // echo "<pre>";
+                                    // echo "Total Data : " . $totalData . "<br>";
+                                    // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                                    // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                                    // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                                    // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                                    // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                                    // echo "Rasio : " . $rasio . "<br>";
+                                    // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                                    // echo "</pre>";
                                     $bw1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster2_price_per_1000']);
                                     $bw2 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
                                     $bw3 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster2_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
@@ -417,6 +423,17 @@ function calculateMAPE($actual, $forecast)
                                         array_push($dataSalesCluster, $dataSales);
                                     }
                                     $newRasio = $beetweenClassVariation / $totalWithinClassVariation;
+                                    // echo "<pre>";
+                                    // echo "Total Data : " . $totalData . "<br>";
+                                    // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                                    // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                                    // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                                    // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                                    // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                                    // echo "Rasio : " . $rasio . "<br>";
+                                    // echo "New Rasio : " . $newRasio . "<br>";
+                                    // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                                    // echo "</pre>";
                                     $clusterIteration += 1;
                                     $totalCluster1 = 0;
                                     $totalCluster2 = 0;
@@ -494,9 +511,26 @@ function calculateMAPE($actual, $forecast)
                                         $rasio = $newRasio;
                                         $clusterIteration += 1;
                                         if ($clusterIteration == 10) {
+                                            // echo "<pre>";
+                                            // echo "Total Data : " . $totalData . "<br>";
+                                            // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                                            // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                                            // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                                            // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                                            // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                                            // echo "Rasio : " . $rasio . "<br>";
+                                            // echo "New Rasio : " . $newRasio . "<br>";
+                                            // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                                            // echo "Total Cluster 1 : " . $totalCluster1 . "<br>";
+                                            // echo "Total Cluster 2 : " . $totalCluster2 . "<br>";
+                                            // echo "Total Cluster 3 : " . $totalCluster3 . "<br>";
                                             $highest = max($totalCluster1, $totalCluster2, $totalCluster3);
                                             $lowest = min($totalCluster1, $totalCluster2, $totalCluster3);
                                             $middle = $totalCluster1 + $totalCluster2 + $totalCluster3 - $highest - $lowest;
+                                            // echo "highest : " . $highest . "<br>";
+                                            // echo "middle : " . $middle . "<br>";
+                                            // echo "lowest : " . $lowest . "<br>";
+
                                             $clusterRun['lowest'] = $lowest;
                                             $clusterRun['middle'] = $middle;
                                             $clusterRun['highest'] = $highest;
@@ -507,6 +541,7 @@ function calculateMAPE($actual, $forecast)
                                             $clusterRun['cluster2_category'] = "";
                                             $clusterRun['cluster3_category'] = "";
 
+                                            // Assigning categories to clusters based on highest, middle, and lowest values
                                             for ($i = 0; $i < 3; $i++) {
                                                 if ($clusterValues[$i] == $highest) {
                                                     $clusterRun["cluster" . ($i + 1) . "_category"] = $clusterCategories[0];
@@ -524,11 +559,15 @@ function calculateMAPE($actual, $forecast)
                                             } else if ($clusterRun['cluster3_category'] == "") {
                                                 $clusterRun['cluster3_category'] = "Sedang";
                                             }
+                                            // print_r($dataSalesCluster);
+                                            // echo "</pre>";
+                                            // Memeriksa apakah data sudah ada dalam tabel
                                             $sql_check = "SELECT COUNT(*) as count FROM clustering";
                                             $result_check = $conn->query($sql_check);
                                             $row_check = $result_check->fetch_assoc();
                                             $count = $row_check["count"];
 
+                                            // Mengatur nilai untuk setiap cluster
                                             $clusters = array(
                                                 'cluster1' => array(
                                                     'id' => 1,
@@ -567,24 +606,28 @@ function calculateMAPE($actual, $forecast)
                                                     'highest' => $clusterRun['highest']
                                                 )
                                             );
+
+                                            // Memasukkan atau memperbarui data di tabel
                                             foreach ($clusters as $cluster => $values) {
                                                 if ($count > 0) {
+                                                    // UPDATE jika data sudah ada dalam tabel
                                                     $sql_update = "UPDATE clustering SET 
-                                                    cluster='{$values['cluster']}',
-                                                    cluster_sold='{$values['cluster_sold']}',
-                                                    cluster_price='{$values['cluster_price']}',
-                                                    cluster_sold_per_1000='{$values['cluster_sold_per_1000']}',
-                                                    cluster_price_per_1000='{$values['cluster_price_per_1000']}',
-                                                    category='{$values['category']}',
-                                                    lowest='{$values['lowest']}',
-                                                    middle='{$values['middle']}',
-                                                    highest='{$values['highest']}' WHERE id='{$values['id']}'";
+                                                cluster='{$values['cluster']}',
+                                                cluster_sold='{$values['cluster_sold']}',
+                                                cluster_price='{$values['cluster_price']}',
+                                                cluster_sold_per_1000='{$values['cluster_sold_per_1000']}',
+                                                cluster_price_per_1000='{$values['cluster_price_per_1000']}',
+                                                category='{$values['category']}',
+                                                lowest='{$values['lowest']}',
+                                                middle='{$values['middle']}',
+                                                highest='{$values['highest']}' WHERE id='{$values['id']}'";
                                                     $conn->query($sql_update);
                                                 } else {
+                                                    // INSERT jika data belum ada dalam tabel
                                                     $sql_insert = "INSERT INTO clustering 
-                                                                (id, cluster, cluster_sold, cluster_price, cluster_sold_per_1000, cluster_price_per_1000, category, lowest, middle, highest)
-                                                                VALUES 
-                                                                ('{$values['id']}','{$values['cluster']}', '{$values['cluster_sold']}', '{$values['cluster_price']}', '{$values['cluster_sold_per_1000']}', '{$values['cluster_price_per_1000']}', '{$values['category']}', '{$values['lowest']}', '{$values['middle']}', '{$values['highest']}')";
+                                                            (id, cluster, cluster_sold, cluster_price, cluster_sold_per_1000, cluster_price_per_1000, category, lowest, middle, highest)
+                                                            VALUES 
+                                                            ('{$values['id']}','{$values['cluster']}', '{$values['cluster_sold']}', '{$values['cluster_price']}', '{$values['cluster_sold_per_1000']}', '{$values['cluster_price_per_1000']}', '{$values['category']}', '{$values['lowest']}', '{$values['middle']}', '{$values['highest']}')";
 
                                                     $conn->query($sql_insert);
                                                 }
@@ -607,39 +650,51 @@ function calculateMAPE($actual, $forecast)
                                                 $nearest = $values['nearest_cluster'];
                                                 $within_class_variation = $values['within_class_variation'];
                                                 $iteration = $values['iteration'];
+                                                // Memeriksa apakah data sudah ada dalam tabel
                                                 $sql_check = "SELECT * FROM sales_cluster WHERE id_item='{$id_item}'";
                                                 $result_check = $conn->query($sql_check);
                                                 if ($result_check->num_rows > 0) {
+                                                    // UPDATE jika data sudah ada dalam tabel
                                                     $sql_update = "UPDATE sales_cluster SET 
-                                                                name='{$name}',
-                                                                total_sold='{$total_sold}',
-                                                                total_sold_per_1000='{$total_sold_per_1000}',
-                                                                price='{$price}',
-                                                                price_per_1000='{$price_per_1000}',
-                                                                unit='{$unit}',
-                                                                m1='{$m1}',
-                                                                m2='{$m2}',
-                                                                m3='{$m3}',
-                                                                mMin='{$mMin}',
-                                                                mMax='{$mMax}',
-                                                                mMinIndex='{$mMinIndex}',
-                                                                mMaxIndex='{$mMaxIndex}',
-                                                                nearest_cluster='{$nearest}',
-                                                                within_class_variation='{$within_class_variation}',
-                                                                iteration='{$iteration}' WHERE id_item='{$id_item}'";
+                                                            name='{$name}',
+                                                            total_sold='{$total_sold}',
+                                                            total_sold_per_1000='{$total_sold_per_1000}',
+                                                            price='{$price}',
+                                                            price_per_1000='{$price_per_1000}',
+                                                            unit='{$unit}',
+                                                            m1='{$m1}',
+                                                            m2='{$m2}',
+                                                            m3='{$m3}',
+                                                            mMin='{$mMin}',
+                                                            mMax='{$mMax}',
+                                                            mMinIndex='{$mMinIndex}',
+                                                            mMaxIndex='{$mMaxIndex}',
+                                                            nearest_cluster='{$nearest}',
+                                                            within_class_variation='{$within_class_variation}',
+                                                            iteration='{$iteration}' WHERE id_item='{$id_item}'";
 
                                                     $conn->query($sql_update);
                                                 } else {
+                                                    // INSERT jika data belum ada dalam tabel
                                                     $sql_insert = "INSERT INTO sales_cluster 
-                                                                (id_item, name, total_sold, total_sold_per_1000, price, price_per_1000, unit, m1, m2, m3, mMin, mMax, mMinIndex, mMaxIndex, nearest_cluster, within_class_variation, iteration)
-                                                                VALUES 
-                                                                ('{$id_item}','{$name}', '{$total_sold}', '{$total_sold_per_1000}', '{$price}', '{$price_per_1000}', '{$unit}', '{$m1}', '{$m2}', '{$m3}', '{$mMin}', '{$mMax}', '{$mMinIndex}', '{$mMaxIndex}', '{$nearest}', '{$within_class_variation}', '{$iteration}')";
+                                                            (id_item, name, total_sold, total_sold_per_1000, price, price_per_1000, unit, m1, m2, m3, mMin, mMax, mMinIndex, mMaxIndex, nearest_cluster, within_class_variation, iteration)
+                                                            VALUES 
+                                                            ('{$id_item}','{$name}', '{$total_sold}', '{$total_sold_per_1000}', '{$price}', '{$price_per_1000}', '{$unit}', '{$m1}', '{$m2}', '{$m3}', '{$mMin}', '{$mMax}', '{$mMinIndex}', '{$mMaxIndex}', '{$nearest}', '{$within_class_variation}', '{$iteration}')";
 
                                                     $conn->query($sql_insert);
                                                 }
+                                                // get all data from sales with id_item 2 tahun lalu join item
+                                                // $th2 = $year + 1;
+                                                // $sql_2th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th2}'";
+                                                // $th1 = $year;
+                                                // $sql_1th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th1}'";
+                                                // $sql_combine = "$sql_2th UNION $sql_1th";
+                                                // $result_sales = $conn->query($sql_combine);
                                                 $tahunini = date('Y');
                                                 $sql_sales = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND year <> '{$tahunini}'";
                                                 $result_sales = $conn->query($sql_sales);
+                                                // echo "jumlah data: " . $result_sales->num_rows . "<br>";
+                                                // SELECT `id`, `code`, `sold`, `month`, `year`, `created_at`, `updated_at`, `id_item`, `id_user` FROM `sales` WHERE 1
                                                 $sigma_y = 0;
                                                 $sigma_x = 0;
                                                 $sigma_x2 = 0;
@@ -680,9 +735,15 @@ function calculateMAPE($actual, $forecast)
                                                     $sigma_x2 = $sigma_x2 + $x2;
                                                     $sigma_xy = $sigma_xy + $xy;
                                                 }
+                                                // nilai n (jumlah data) nilai n (jumlah data)
                                                 $n = count($dataItemTrend);
+                                                // average data_actual_or_y rata rata y
                                                 $average_y = $sigma_y / $n;
+
+                                                // average time_x rata rata x
                                                 $average_x = $sigma_x / $n;
+
+                                                // coba 1
                                                 $cobaPreYATAS = $sigma_y;
                                                 $cobaPreAATAS = $n;
                                                 $cobaPreABAWAH = $sigma_x;
@@ -710,6 +771,39 @@ function calculateMAPE($actual, $forecast)
                                                 $cccBATAS = $cccBATAS * $bREAL;
                                                 $cccXXXX = $cccYATAS - $cccBATAS;
                                                 $aREAL = $cccXXXX / $cccAATAS;
+
+
+                                                // if ($id_item == 101) {
+                                                //     echo "jumlah data: " . $n . "<br>";
+                                                //     echo "sigma y: " . $sigma_y . "<br>";
+                                                //     echo "sigma x: " . $sigma_x . "<br>";
+                                                //     echo "sigma xy: " . $sigma_xy . "<br>";
+                                                //     echo "sigma x2: " . $sigma_x2 . "<br>";
+                                                //     echo "average x: " . $average_x . "<br>";
+                                                //     echo "average y: " . $average_y . "<br>";
+                                                //     echo "pre Y ATAS: " . $cobaPreYATAS . "<br>";
+                                                //     echo "pre A ATAS: " . $cobaPreAATAS . "<br>";
+                                                //     echo "pre A BAWAH: " . $cobaPreABAWAH . "<br>";
+                                                //     echo "pre Y BAWAH: " . $cobaPreYBAWAH . "<br>";
+                                                //     echo "pre B ATAS: " . $cobaPreBAATAS . "<br>";
+                                                //     echo "pre B BAWAH: " . $cobaPreBBAWAH . "<br>";
+                                                //     echo "times: " . $times . "<br>";
+                                                //     echo "pra Y ATAS: " . $cobaPraYATAS . "<br>";
+                                                //     echo "pra A ATAS: " . $cobaPraAATAS . "<br>";
+                                                //     echo "pra A BAWAH: " . $cobaPraABAWAH . "<br>";
+                                                //     echo "pra Y BAWAH: " . $cobaPraYBAWAH . "<br>";
+                                                //     echo "pra B ATAS: " . $cobaPraBATAS . "<br>";
+                                                //     echo "pra B BAWAH: " . $cobaPraBBAWAH . "<br>";
+                                                //     echo "y baru: " . $cobaYBaru . "<br>";
+                                                //     echo "a baru: " . $cobaABaru . "<br>";
+                                                //     echo "b baru: " . $cobaBBaru . "<br>";
+                                                //     echo "b real: " . $bREAL . "<br>";
+                                                //     echo "ccc y atas: " . $cccYATAS . "<br>";
+                                                //     echo "ccc a atas: " . $cccAATAS . "<br>";
+                                                //     echo "ccc b atas: " . $cccBATAS . "<br>";
+                                                //     echo "ccc xxxx: " . $cccXXXX . "<br>";
+                                                //     echo "a real: " . $aREAL . "<br>";
+                                                // }
                                                 $dateY = date("Y");
                                                 $ape = 0;
                                                 $accuracy = 0;
@@ -719,9 +813,12 @@ function calculateMAPE($actual, $forecast)
                                                 $actualData = [];
                                                 $forecastData = [];
                                                 for ($i = 1; $i < 13; $i++) {
+                                                    // cari di sales data yang month = $i dan id_item = $id_item kecuali tahun ini
                                                     $sql_sales = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' EXCEPT SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
+                                                    // count data
                                                     $result_sales = $conn->query($sql_sales);
                                                     $count_sales = $result_sales->num_rows;
+                                                    // average sold from sales
                                                     $sigma_sold = 0;
                                                     while ($row = $result_sales->fetch_assoc()) {
                                                         $sold = $row['sold'];
@@ -734,6 +831,15 @@ function calculateMAPE($actual, $forecast)
                                                     $bPerBln = $bREAL * $xxxx;
                                                     $yPerBln = $aPerBln + $bPerBln;
                                                     $forecast = $yPerBln * $indexMusim;
+                                                    // if($id_item == 101){
+                                                    //     echo "x = " . $xxxx . "<br>";
+                                                    //     echo "a per bulan = " . $aPerBln . "<br>";
+                                                    //     echo "b per bulan = " . $bPerBln . "<br>";
+                                                    //     echo "y per bulan = " . $yPerBln . "<br>";
+                                                    //     echo "index musim = " . $indexMusim . "<br>";
+                                                    //     echo "forecast = " . $forecast . "<br>";
+                                                    // }
+                                                    // SQL get data from sales table tahun ini
                                                     $sql_salesss = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
                                                     // count data
                                                     $result_salesss = $conn->query($sql_salesss);
@@ -817,8 +923,11 @@ function calculateMAPE($actual, $forecast)
                                                         $mape = $mapess;
                                                     }
 
+                                                    // insert into trend_moment table if not exist yet and update if exist
                                                     $sql_tm = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
                                                     $result_tm = $conn->query($sql_tm);
+                                                    // hitung $result_tm->num_rows
+                                                    // INSERT INTO `trends_moment`(`id`, `id_item`, `id_sale`, `month`, `time_x`, `year`, `sales_real`, `a`, `b`, `y`, `averageSold`, `indexMusim`, `forecast`, `ape`, `mape`, `accuracy`) VALUES ('[value-1]','[value-2]','[value-3]','[value-4]','[value-5]','[value-6]','[value-7]','[value-8]','[value-9]','[value-10]','[value-11]','[value-12]','[value-13]','[value-14]','[value-15]','[value-16]')
                                                     if ($result_tm->num_rows == 0) {
                                                         $sql_insert_tm = "INSERT INTO trends_moment (id_item, id_sale, month, time_x, year, sales_real, a, b, y, averageSold, indexMusim, forecast, ape, mape, accuracy) VALUES ('{$id_item}','{$id_sale}','{$month}','{$time_x}','{$year}','{$sales_real}','{$a}','{$b}','{$y}','{$averageSold}','{$indexMusim}','{$forecast}','{$ape}','{$mape}','{$accuracy}')";
                                                         $result_insert_tm = $conn->query($sql_insert_tm);
@@ -827,6 +936,15 @@ function calculateMAPE($actual, $forecast)
                                                         $result_update_tm = $conn->query($sql_update_tm);
                                                     }
                                                 }
+
+                                                // }
+                                                // $mape = calculateMAPE($Factual, $Fforecast);
+                                                // // update mape trends_moment
+                                                // $sql_update_tm = "UPDATE trends_moment SET mape='{$mape}' WHERE id_item='{$id_item}'";
+                                                // $result_update_tm = $conn->query($sql_update_tm);
+                                                // // echo "<pre>";
+                                                // // print_r($dataTrendMoments);
+                                                // // echo "</pre>";
                                             }
                                             break;
                                         }
@@ -835,8 +953,6 @@ function calculateMAPE($actual, $forecast)
                                         $totalCluster3 = 0;
                                     }
                                 }
-                                // if ($reload == true && $rforecast == true) {
-                                // }
                             }
                             ?>
                         </div>
@@ -852,9 +968,6 @@ function calculateMAPE($actual, $forecast)
                                     </div>
                                 </div>
                         <?php
-                                $_GET['reload'] = 'false';
-                                $_GET['rcluster'] = 'false';
-                                $_GET['rforecast'] = 'false';
                             }
                         }
                         ?>
