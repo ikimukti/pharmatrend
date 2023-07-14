@@ -275,7 +275,7 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                             <h2 class="text-xl font-bold">Results:</h2>
                             <p class="mt-2">The results of the trend moment analysis are as follows:</p>
                             <p class="mt-2">
-                                After analyzing the trend moment, from <?php echo $firstDate; ?> to <?php echo $lastDate; ?> period using previous sales data, the drug named
+                                After analyzing the trend moment, from <?php echo $lastDate; ?> to <?php echo $firstDate; ?> period using previous sales data, the drug named
                                 <span class="text-red-500"><?php echo $item['name']; ?></span> has a trend moment value of
                                 yielded the following results: the average APE (Absolute Percentage Error) value is
                                 <span class="text-red-500"><?php echo number_format($totalAPE / $jmdata, 2); ?>%</span>,
