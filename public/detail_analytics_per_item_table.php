@@ -284,7 +284,7 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                 and the average MAPE (Mean Absolute Percentage Error) value is
                                 <span class="text-red-500"><?php echo number_format($totalMAPE, 2); ?>%</span>.
                                 Therefore, it can be concluded that the trend moment prediction for the drug <?php echo $item['name']; ?> in the
-                                <?php echo $firstDate; ?> to <?php echo $lastDate; ?> period has an accuracy level of <?php if ($totalMAPE  < 10) { ?>
+                                <?php echo $lastDate; ?> to <?php echo $firstDate; ?> period has an accuracy level of <?php if ($totalMAPE  < 10) { ?>
                                     <span class="bg-green-500 text-white px-2 py-1 rounded">Very Good</span>
                                 <?php } elseif ($totalMAPE  < 20) { ?>
                                     <span class="bg-green-500 text-white px-2 py-1 rounded">Good</span>
