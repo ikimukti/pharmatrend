@@ -188,7 +188,6 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                         <th class="border-2 border-gray-200 px-2 py-1 text-sm">Index Musim</th>
                                         <th class="border-2 border-gray-200 px-2 py-1 text-sm">Trend Moment</th>
                                         <th class="border-2 border-gray-200 px-2 py-1 text-sm">APE</th>
-                                        <th class="border-2 border-gray-200 px-2 py-1 text-sm">MAPE</th>
                                         <th class="border-2 border-gray-200 px-2 py-1 text-sm">Accuracy</th>
                                     </tr>
                                 </thead>
@@ -263,7 +262,6 @@ $currentMonthRevenue = $currentMonthRevenueRow['current_month_revenue'];
                                             <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo number_format($row['indexMusim'], 4); ?></td>
                                             <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo number_format($trend, 2); ?></td>
                                             <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo number_format($row['ape'], 2); ?> %</td>
-                                            <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo number_format($row['mape'], 2); ?> %</td>
                                             <td class="border-2 border-gray-200 px-2 py-1 text-sm"><?php echo number_format($row['accuracy'], 2); ?> %</td>
                                         </tr>
                                     <?php
