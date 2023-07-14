@@ -7,6 +7,14 @@ if (!isset($_SESSION["id"])) {
 require_once("config.php");
 
 $year = date("Y");
+$reloadcluster = false;
+$reloadtrend = false;
+if (isset($_GET["reloadcluster"]) && $_GET["reloadcluster"] == "true") {
+    $reloadcluster = true;
+}
+if (isset($_GET["reloadtrend"]) && $_GET["reloadtrend"] == "true") {
+    $reloadtrend = true;
+}
 $month = date("m");
 $reload = false;
 if (isset($_GET["reload"]) && $_GET["reload"] == "true") {
@@ -184,11 +192,16 @@ function calculateMAPE($actual, $forecast)
                                 <p class="text-gray-700">Welcome back, <?php echo $_SESSION['fullname']; ?> !, here's what's
                                     happening with your store today.</p>
                             </div>
-                            <!-- btn reload -->
+                            <!-- btn reload cluster -->
+                            <!-- btn reload trend -->
                             <div class="flex flex-row gap-2 mt-4">
-                                <a class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" href="dashboard.php?reload=true">
+                                <a class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" href="dashboard.php?reload=true&reloadcluster=true">
                                     <i class="fas fa-sync-alt"></i>
-                                    <span>Reload</span>
+                                    <span>Reload Cluster</span>
+                                </a>
+                                <a class="flex flex-row justify-center items-center bg-gray-200 hover:bg-gray-300 rounded-md px-4 py-2 text-gray-700 space-x-2" href="dashboard.php?reload=true&reloadtrend=true">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Reload Trend</span>
                                 </a>
                             </div>
                         </div>
@@ -220,225 +233,142 @@ function calculateMAPE($actual, $forecast)
                             if ($toogleBtnAnalyticsCounter == 0) {
                                 $toogleBtnAnalytics = true;
                                 if ($reload) {
-                                    // 2 tahun lalu
-                                    $year = date("Y") - 2;
-                                    // query untuk mendapatkan semua item yang terjual pada 2 tahun lalu rata-rata sold per month
-                                    $sales2yearago = "SELECT i.id, i.name, AVG(s.sold) AS total_sold, i.price AS price, i.unit AS unit FROM items i JOIN sales s ON i.id = s.id_item WHERE year = '$year' OR year = '$year' + 1 GROUP BY i.id, i.name";
-                                    $salesResult = mysqli_query($conn, $sales2yearago);
-                                    // hitung data yang didapatkan
-                                    $salesCount = mysqli_num_rows($salesResult);
-                                    $salesAll = array();
-                                    while ($salesRow = mysqli_fetch_assoc($salesResult)) {
-                                        $salesId = $salesRow['id'];
-                                        $salesName = $salesRow['name'];
-                                        $salesTotalSold = $salesRow['total_sold'];
-                                        $salesPrice = $salesRow['price'];
-                                        $salesUnit = $salesRow['unit'];
-                                        $dataSales = array(
-                                            "id" => $salesId,
-                                            "name" => $salesName,
-                                            "total_sold" => $salesTotalSold,
-                                            "total_sold_per_1000" => $salesTotalSold / 1000,
-                                            "price" => $salesPrice,
-                                            "price_per_1000" => $salesPrice / 1000,
-                                            "unit" => $salesUnit
-                                        );
-                                        array_push($salesAll, $dataSales);
-                                    }
-                                    $randomSales = array();
-
-                                    // Mendapatkan jumlah data yang tersedia
-                                    $totalData = count($salesAll);
-
-                                    // Memastikan jumlah data yang tersedia cukup untuk diambil 3
-                                    if ($totalData >= 3) {
-                                        // Mengacak urutan data dalam array
-                                        shuffle($salesAll);
-
-                                        // Mengambil 3 data pertama setelah diacak
-                                        $randomSales = array_slice($salesAll, 0, 3);
-                                    } else {
-                                        // Jika jumlah data kurang dari 3, mengembalikan semua data
-                                        $randomSales = $salesAll;
-                                    }
-                                    $bw1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $randomSales[1]['total_sold_per_1000'], $randomSales[0]['price_per_1000'], $randomSales[1]['price_per_1000']);
-                                    $bw2 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $randomSales[2]['total_sold_per_1000'], $randomSales[0]['price_per_1000'], $randomSales[2]['price_per_1000']);
-                                    $bw3 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $randomSales[2]['total_sold_per_1000'], $randomSales[1]['price_per_1000'], $randomSales[2]['price_per_1000']);
-                                    $beetweenClassVariation = ($bw1 + $bw2 + $bw3);
-                                    $totalWithinClassVariation = 0;
-                                    $rasio = 0;
-                                    $newRasio = 0;
-                                    $clusterRun = array(
-                                        "cluster1" => 0,
-                                        "cluster2" => 0,
-                                        "cluster3" => 0,
-                                        "cluster1_sold" => 0,
-                                        "cluster2_sold" => 0,
-                                        "cluster3_sold" => 0,
-                                        "cluster1_price" => 0,
-                                        "cluster2_price" => 0,
-                                        "cluster3_price" => 0,
-                                        "cluster1_sold_per_1000" => 0,
-                                        "cluster2_sold_per_1000" => 0,
-                                        "cluster3_sold_per_1000" => 0,
-                                        "cluster1_price_per_1000" => 0,
-                                        "cluster2_price_per_1000" => 0,
-                                        "cluster3_price_per_1000" => 0
-                                    );
-                                    $salesCluster = array();
-                                    $clusterRepeat = false;
-                                    $clusterIteration = 0;
-                                    foreach ($salesAll as $key => $value) {
-                                        $salesId = $salesAll[$key]['id'];
-                                        $salesName = $salesAll[$key]['name'];
-                                        $salesTotalSold = $salesAll[$key]['total_sold'];
-                                        $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
-                                        $salesPrice = $salesAll[$key]['price'];
-                                        $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
-                                        $salesUnit = $salesAll[$key]['unit'];
-                                        $m1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[0]['price_per_1000'], $salesPricePer1000);
-                                        $m2 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[1]['price_per_1000'], $salesPricePer1000);
-                                        $m3 = euclideanDistance($randomSales[2]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[2]['price_per_1000'], $salesPricePer1000);
-                                        $m = array($m1, $m2, $m3);
-                                        $mMin = min($m);
-                                        $mMax = max($m);
-                                        $mMinIndex = array_search($mMin, $m);
-                                        if ($mMin == $m1) {
-                                            $clusterRun['cluster1'] += 1;
-                                            $clusterRun['cluster1_sold'] += $salesTotalSold;
-                                            $clusterRun['cluster1_price'] += $salesPrice;
-                                            $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
-                                            $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
-                                        } else if ($mMin == $m2) {
-                                            $clusterRun['cluster2'] += 1;
-                                            $clusterRun['cluster2_sold'] += $salesTotalSold;
-                                            $clusterRun['cluster2_price'] += $salesPrice;
-                                            $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
-                                            $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
-                                        } else if ($mMin == $m3) {
-                                            $clusterRun['cluster3'] += 1;
-                                            $clusterRun['cluster3_sold'] += $salesTotalSold;
-                                            $clusterRun['cluster3_price'] += $salesPrice;
-                                            $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
-                                            $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
+                                    if ($reloadcluster) {
+                                        // 2 tahun lalu
+                                        $year = date("Y") - 2;
+                                        // query untuk mendapatkan semua item yang terjual pada 2 tahun lalu rata-rata sold per month
+                                        $sales2yearago = "SELECT i.id, i.name, AVG(s.sold) AS total_sold, i.price AS price, i.unit AS unit FROM items i JOIN sales s ON i.id = s.id_item WHERE year = '$year' OR year = '$year' + 1 GROUP BY i.id, i.name";
+                                        $salesResult = mysqli_query($conn, $sales2yearago);
+                                        // hitung data yang didapatkan
+                                        $salesCount = mysqli_num_rows($salesResult);
+                                        $salesAll = array();
+                                        while ($salesRow = mysqli_fetch_assoc($salesResult)) {
+                                            $salesId = $salesRow['id'];
+                                            $salesName = $salesRow['name'];
+                                            $salesTotalSold = $salesRow['total_sold'];
+                                            $salesPrice = $salesRow['price'];
+                                            $salesUnit = $salesRow['unit'];
+                                            $dataSales = array(
+                                                "id" => $salesId,
+                                                "name" => $salesName,
+                                                "total_sold" => $salesTotalSold,
+                                                "total_sold_per_1000" => $salesTotalSold / 1000,
+                                                "price" => $salesPrice,
+                                                "price_per_1000" => $salesPrice / 1000,
+                                                "unit" => $salesUnit
+                                            );
+                                            array_push($salesAll, $dataSales);
                                         }
-                                        $mMaxIndex = array_search($mMax, $m);
-                                        $nearestCluster = $mMin;
-                                        $withinClassVariation = pow($nearestCluster, 2);
-                                        $totalWithinClassVariation += $withinClassVariation;
-                                        $dataSales = array(
-                                            "id" => $salesId,
-                                            "name" => $salesName,
-                                            "total_sold" => $salesTotalSold,
-                                            "total_sold_per_1000" => $salesTotalSold / 1000,
-                                            "price" => $salesPrice,
-                                            "price_per_1000" => $salesPrice / 1000,
-                                            "unit" => $salesUnit,
-                                            "m1" => $m1,
-                                            "m2" => $m2,
-                                            "m3" => $m3,
-                                            "mMin" => $mMin,
-                                            "mMinIndex" => $mMinIndex,
-                                            "mMax" => $mMax,
-                                            "mMaxIndex" => $mMaxIndex,
-                                            "nearest_cluster" => $nearestCluster,
-                                            "within_class_variation" => $withinClassVariation
-                                        );
-                                        array_push($salesCluster, $dataSales);
-                                    }
-                                    $rasio = $beetweenClassVariation / $totalWithinClassVariation;
-                                    // echo "<pre>";
-                                    // echo "Total Data : " . $totalData . "<br>";
-                                    // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
-                                    // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
-                                    // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
-                                    // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
-                                    // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
-                                    // echo "Rasio : " . $rasio . "<br>";
-                                    // echo "Cluster Iteration : " . $clusterIteration . "<br>";
-                                    // echo "</pre>";
-                                    $bw1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster2_price_per_1000']);
-                                    $bw2 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
-                                    $bw3 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster2_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
-                                    $beetweenClassVariation = ($bw1 + $bw2 + $bw3);
-                                    $clusterRun['cluster1'] = 0;
-                                    $clusterRun['cluster2'] = 0;
-                                    $clusterRun['cluster3'] = 0;
-                                    $clusterIteration += 1;
-                                    $dataSalesCluster = array();
-                                    foreach ($salesCluster as $key => $value) {
-                                        $salesId = $salesAll[$key]['id'];
-                                        $salesName = $salesAll[$key]['name'];
-                                        $salesTotalSold = $salesAll[$key]['total_sold'];
-                                        $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
-                                        $salesPrice = $salesAll[$key]['price'];
-                                        $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
-                                        $salesUnit = $salesAll[$key]['unit'];
-                                        $m1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster1_price_per_1000'], $salesPricePer1000);
-                                        $m2 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster2_price_per_1000'], $salesPricePer1000);
-                                        $m3 = euclideanDistance($clusterRun['cluster3_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster3_price_per_1000'], $salesPricePer1000);
-                                        $m = array($m1, $m2, $m3);
-                                        $mMin = min($m);
-                                        $mMax = max($m);
-                                        $mMinIndex = array_search($mMin, $m);
-                                        if ($mMin == $m1) {
-                                            $clusterRun['cluster1'] += 1;
-                                            $clusterRun['cluster1_sold'] += $salesTotalSold;
-                                            $clusterRun['cluster1_price'] += $salesPrice;
-                                            $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
-                                            $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
-                                        } else if ($mMin == $m2) {
-                                            $clusterRun['cluster2'] += 1;
-                                            $clusterRun['cluster2_sold'] += $salesTotalSold;
-                                            $clusterRun['cluster2_price'] += $salesPrice;
-                                            $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
-                                            $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
-                                        } else if ($mMin == $m3) {
-                                            $clusterRun['cluster3'] += 1;
-                                            $clusterRun['cluster3_sold'] += $salesTotalSold;
-                                            $clusterRun['cluster3_price'] += $salesPrice;
-                                            $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
-                                            $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
+                                        $randomSales = array();
+                                        // Mendapatkan jumlah data yang tersedia
+                                        $totalData = count($salesAll);
+                                        // Memastikan jumlah data yang tersedia cukup untuk diambil 3
+                                        if ($totalData >= 3) {
+                                            // Mengacak urutan data dalam array
+                                            shuffle($salesAll);
+
+                                            // Mengambil 3 data pertama setelah diacak
+                                            $randomSales = array_slice($salesAll, 0, 3);
+                                        } else {
+                                            // Jika jumlah data kurang dari 3, mengembalikan semua data
+                                            $randomSales = $salesAll;
                                         }
-                                        $nearestCluster = $mMinIndex + 1;
-                                        $withinClassVariation = $mMin;
-                                        $dataSales = array(
-                                            "id" => $salesId,
-                                            "name" => $salesName,
-                                            "total_sold" => $salesTotalSold,
-                                            "total_sold_per_1000" => $salesTotalSoldPer1000,
-                                            "price" => $salesPrice,
-                                            "price_per_1000" => $salesPrice / 1000,
-                                            "unit" => $salesUnit,
-                                            "m1" => $m1,
-                                            "m2" => $m2,
-                                            "m3" => $m3,
-                                            "mMin" => $mMin,
-                                            "mMinIndex" => $mMinIndex,
-                                            "mMax" => $mMax,
-                                            "mMaxIndex" => $mMaxIndex,
-                                            "nearest_cluster" => $nearestCluster,
-                                            "within_class_variation" => $withinClassVariation
+                                        $bw1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $randomSales[1]['total_sold_per_1000'], $randomSales[0]['price_per_1000'], $randomSales[1]['price_per_1000']);
+                                        $bw2 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $randomSales[2]['total_sold_per_1000'], $randomSales[0]['price_per_1000'], $randomSales[2]['price_per_1000']);
+                                        $bw3 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $randomSales[2]['total_sold_per_1000'], $randomSales[1]['price_per_1000'], $randomSales[2]['price_per_1000']);
+                                        $beetweenClassVariation = ($bw1 + $bw2 + $bw3);
+                                        $totalWithinClassVariation = 0;
+                                        $rasio = 0;
+                                        $newRasio = 0;
+                                        $clusterRun = array(
+                                            "cluster1" => 0,
+                                            "cluster2" => 0,
+                                            "cluster3" => 0,
+                                            "cluster1_sold" => 0,
+                                            "cluster2_sold" => 0,
+                                            "cluster3_sold" => 0,
+                                            "cluster1_price" => 0,
+                                            "cluster2_price" => 0,
+                                            "cluster3_price" => 0,
+                                            "cluster1_sold_per_1000" => 0,
+                                            "cluster2_sold_per_1000" => 0,
+                                            "cluster3_sold_per_1000" => 0,
+                                            "cluster1_price_per_1000" => 0,
+                                            "cluster2_price_per_1000" => 0,
+                                            "cluster3_price_per_1000" => 0
                                         );
-                                        array_push($dataSalesCluster, $dataSales);
-                                    }
-                                    $newRasio = $beetweenClassVariation / $totalWithinClassVariation;
-                                    // echo "<pre>";
-                                    // echo "Total Data : " . $totalData . "<br>";
-                                    // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
-                                    // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
-                                    // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
-                                    // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
-                                    // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
-                                    // echo "Rasio : " . $rasio . "<br>";
-                                    // echo "New Rasio : " . $newRasio . "<br>";
-                                    // echo "Cluster Iteration : " . $clusterIteration . "<br>";
-                                    // echo "</pre>";
-                                    $clusterIteration += 1;
-                                    $totalCluster1 = 0;
-                                    $totalCluster2 = 0;
-                                    $totalCluster3 = 0;
-                                    while ($newRasio > $rasio or $clusterIteration < 20) {
+                                        $salesCluster = array();
+                                        $clusterRepeat = false;
+                                        $clusterIteration = 0;
+                                        foreach ($salesAll as $key => $value) {
+                                            $salesId = $salesAll[$key]['id'];
+                                            $salesName = $salesAll[$key]['name'];
+                                            $salesTotalSold = $salesAll[$key]['total_sold'];
+                                            $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
+                                            $salesPrice = $salesAll[$key]['price'];
+                                            $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
+                                            $salesUnit = $salesAll[$key]['unit'];
+                                            $m1 = euclideanDistance($randomSales[0]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[0]['price_per_1000'], $salesPricePer1000);
+                                            $m2 = euclideanDistance($randomSales[1]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[1]['price_per_1000'], $salesPricePer1000);
+                                            $m3 = euclideanDistance($randomSales[2]['total_sold_per_1000'], $salesTotalSoldPer1000, $randomSales[2]['price_per_1000'], $salesPricePer1000);
+                                            $m = array($m1, $m2, $m3);
+                                            $mMin = min($m);
+                                            $mMax = max($m);
+                                            $mMinIndex = array_search($mMin, $m);
+                                            if ($mMin == $m1) {
+                                                $clusterRun['cluster1'] += 1;
+                                                $clusterRun['cluster1_sold'] += $salesTotalSold;
+                                                $clusterRun['cluster1_price'] += $salesPrice;
+                                                $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
+                                                $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
+                                            } else if ($mMin == $m2) {
+                                                $clusterRun['cluster2'] += 1;
+                                                $clusterRun['cluster2_sold'] += $salesTotalSold;
+                                                $clusterRun['cluster2_price'] += $salesPrice;
+                                                $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
+                                                $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
+                                            } else if ($mMin == $m3) {
+                                                $clusterRun['cluster3'] += 1;
+                                                $clusterRun['cluster3_sold'] += $salesTotalSold;
+                                                $clusterRun['cluster3_price'] += $salesPrice;
+                                                $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
+                                                $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
+                                            }
+                                            $mMaxIndex = array_search($mMax, $m);
+                                            $nearestCluster = $mMin;
+                                            $withinClassVariation = pow($nearestCluster, 2);
+                                            $totalWithinClassVariation += $withinClassVariation;
+                                            $dataSales = array(
+                                                "id" => $salesId,
+                                                "name" => $salesName,
+                                                "total_sold" => $salesTotalSold,
+                                                "total_sold_per_1000" => $salesTotalSold / 1000,
+                                                "price" => $salesPrice,
+                                                "price_per_1000" => $salesPrice / 1000,
+                                                "unit" => $salesUnit,
+                                                "m1" => $m1,
+                                                "m2" => $m2,
+                                                "m3" => $m3,
+                                                "mMin" => $mMin,
+                                                "mMinIndex" => $mMinIndex,
+                                                "mMax" => $mMax,
+                                                "mMaxIndex" => $mMaxIndex,
+                                                "nearest_cluster" => $nearestCluster,
+                                                "within_class_variation" => $withinClassVariation
+                                            );
+                                            array_push($salesCluster, $dataSales);
+                                        }
+                                        $rasio = $beetweenClassVariation / $totalWithinClassVariation;
+                                        // echo "<pre>";
+                                        // echo "Total Data : " . $totalData . "<br>";
+                                        // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                                        // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                                        // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                                        // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                                        // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                                        // echo "Rasio : " . $rasio . "<br>";
+                                        // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                                        // echo "</pre>";
                                         $bw1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster2_price_per_1000']);
                                         $bw2 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
                                         $bw3 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster2_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
@@ -446,6 +376,7 @@ function calculateMAPE($actual, $forecast)
                                         $clusterRun['cluster1'] = 0;
                                         $clusterRun['cluster2'] = 0;
                                         $clusterRun['cluster3'] = 0;
+                                        $clusterIteration += 1;
                                         $dataSalesCluster = array();
                                         foreach ($salesCluster as $key => $value) {
                                             $salesId = $salesAll[$key]['id'];
@@ -468,21 +399,18 @@ function calculateMAPE($actual, $forecast)
                                                 $clusterRun['cluster1_price'] += $salesPrice;
                                                 $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
                                                 $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
-                                                $totalCluster1 = $totalCluster1 + ($salesTotalSoldPer1000 * $salesPricePer1000);
                                             } else if ($mMin == $m2) {
                                                 $clusterRun['cluster2'] += 1;
                                                 $clusterRun['cluster2_sold'] += $salesTotalSold;
                                                 $clusterRun['cluster2_price'] += $salesPrice;
                                                 $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
                                                 $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
-                                                $totalCluster2 = $totalCluster2 + ($salesTotalSoldPer1000 * $salesPricePer1000);
                                             } else if ($mMin == $m3) {
                                                 $clusterRun['cluster3'] += 1;
                                                 $clusterRun['cluster3_sold'] += $salesTotalSold;
                                                 $clusterRun['cluster3_price'] += $salesPrice;
                                                 $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
                                                 $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
-                                                $totalCluster3 = $totalCluster3 + ($salesTotalSoldPer1000 * $salesPricePer1000);
                                             }
                                             $nearestCluster = $mMinIndex + 1;
                                             $withinClassVariation = $mMin;
@@ -502,15 +430,98 @@ function calculateMAPE($actual, $forecast)
                                                 "mMax" => $mMax,
                                                 "mMaxIndex" => $mMaxIndex,
                                                 "nearest_cluster" => $nearestCluster,
-                                                "within_class_variation" => $withinClassVariation,
-                                                "iteration" => $clusterIteration,
+                                                "within_class_variation" => $withinClassVariation
                                             );
                                             array_push($dataSalesCluster, $dataSales);
                                         }
                                         $newRasio = $beetweenClassVariation / $totalWithinClassVariation;
-                                        $rasio = $newRasio;
+                                        // echo "<pre>";
+                                        // echo "Total Data : " . $totalData . "<br>";
+                                        // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
+                                        // echo "Total Data Cluster 2 : " . $clusterRun['cluster2'] . "<br>";
+                                        // echo "Total Data Cluster 3 : " . $clusterRun['cluster3'] . "<br>";
+                                        // echo "Total Within Class Variation : " . $totalWithinClassVariation . "<br>";
+                                        // echo "Total Beetween Class Variation : " . $beetweenClassVariation . "<br>";
+                                        // echo "Rasio : " . $rasio . "<br>";
+                                        // echo "New Rasio : " . $newRasio . "<br>";
+                                        // echo "Cluster Iteration : " . $clusterIteration . "<br>";
+                                        // echo "</pre>";
                                         $clusterIteration += 1;
-                                        if ($clusterIteration == 10) {
+                                        $totalCluster1 = 0;
+                                        $totalCluster2 = 0;
+                                        $totalCluster3 = 0;
+                                        while ($newRasio > $rasio or $clusterIteration < 20) {
+                                            $bw1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster2_price_per_1000']);
+                                            $bw2 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster1_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
+                                            $bw3 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $clusterRun['cluster3_sold_per_1000'], $clusterRun['cluster2_price_per_1000'], $clusterRun['cluster3_price_per_1000']);
+                                            $beetweenClassVariation = ($bw1 + $bw2 + $bw3);
+                                            $clusterRun['cluster1'] = 0;
+                                            $clusterRun['cluster2'] = 0;
+                                            $clusterRun['cluster3'] = 0;
+                                            $dataSalesCluster = array();
+                                            foreach ($salesCluster as $key => $value) {
+                                                $salesId = $salesAll[$key]['id'];
+                                                $salesName = $salesAll[$key]['name'];
+                                                $salesTotalSold = $salesAll[$key]['total_sold'];
+                                                $salesTotalSoldPer1000 = $salesAll[$key]['total_sold_per_1000'];
+                                                $salesPrice = $salesAll[$key]['price'];
+                                                $salesPricePer1000 = $salesAll[$key]['price_per_1000'];
+                                                $salesUnit = $salesAll[$key]['unit'];
+                                                $m1 = euclideanDistance($clusterRun['cluster1_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster1_price_per_1000'], $salesPricePer1000);
+                                                $m2 = euclideanDistance($clusterRun['cluster2_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster2_price_per_1000'], $salesPricePer1000);
+                                                $m3 = euclideanDistance($clusterRun['cluster3_sold_per_1000'], $salesTotalSoldPer1000, $clusterRun['cluster3_price_per_1000'], $salesPricePer1000);
+                                                $m = array($m1, $m2, $m3);
+                                                $mMin = min($m);
+                                                $mMax = max($m);
+                                                $mMinIndex = array_search($mMin, $m);
+                                                if ($mMin == $m1) {
+                                                    $clusterRun['cluster1'] += 1;
+                                                    $clusterRun['cluster1_sold'] += $salesTotalSold;
+                                                    $clusterRun['cluster1_price'] += $salesPrice;
+                                                    $clusterRun['cluster1_sold_per_1000'] += $salesTotalSoldPer1000;
+                                                    $clusterRun['cluster1_price_per_1000'] += $salesPricePer1000;
+                                                    $totalCluster1 = $totalCluster1 + ($salesTotalSoldPer1000 * $salesPricePer1000);
+                                                } else if ($mMin == $m2) {
+                                                    $clusterRun['cluster2'] += 1;
+                                                    $clusterRun['cluster2_sold'] += $salesTotalSold;
+                                                    $clusterRun['cluster2_price'] += $salesPrice;
+                                                    $clusterRun['cluster2_sold_per_1000'] += $salesTotalSoldPer1000;
+                                                    $clusterRun['cluster2_price_per_1000'] += $salesPricePer1000;
+                                                    $totalCluster2 = $totalCluster2 + ($salesTotalSoldPer1000 * $salesPricePer1000);
+                                                } else if ($mMin == $m3) {
+                                                    $clusterRun['cluster3'] += 1;
+                                                    $clusterRun['cluster3_sold'] += $salesTotalSold;
+                                                    $clusterRun['cluster3_price'] += $salesPrice;
+                                                    $clusterRun['cluster3_sold_per_1000'] += $salesTotalSoldPer1000;
+                                                    $clusterRun['cluster3_price_per_1000'] += $salesPricePer1000;
+                                                    $totalCluster3 = $totalCluster3 + ($salesTotalSoldPer1000 * $salesPricePer1000);
+                                                }
+                                                $nearestCluster = $mMinIndex + 1;
+                                                $withinClassVariation = $mMin;
+                                                $dataSales = array(
+                                                    "id" => $salesId,
+                                                    "name" => $salesName,
+                                                    "total_sold" => $salesTotalSold,
+                                                    "total_sold_per_1000" => $salesTotalSoldPer1000,
+                                                    "price" => $salesPrice,
+                                                    "price_per_1000" => $salesPrice / 1000,
+                                                    "unit" => $salesUnit,
+                                                    "m1" => $m1,
+                                                    "m2" => $m2,
+                                                    "m3" => $m3,
+                                                    "mMin" => $mMin,
+                                                    "mMinIndex" => $mMinIndex,
+                                                    "mMax" => $mMax,
+                                                    "mMaxIndex" => $mMaxIndex,
+                                                    "nearest_cluster" => $nearestCluster,
+                                                    "within_class_variation" => $withinClassVariation,
+                                                    "iteration" => $clusterIteration,
+                                                );
+                                                array_push($dataSalesCluster, $dataSales);
+                                            }
+                                            $newRasio = $beetweenClassVariation / $totalWithinClassVariation;
+                                            $rasio = $newRasio;
+                                            $clusterIteration += 1;
                                             // echo "<pre>";
                                             // echo "Total Data : " . $totalData . "<br>";
                                             // echo "Total Data Cluster 1 : " . $clusterRun['cluster1'] . "<br>";
@@ -608,10 +619,11 @@ function calculateMAPE($actual, $forecast)
                                             );
 
                                             // Memasukkan atau memperbarui data di tabel
-                                            foreach ($clusters as $cluster => $values) {
-                                                if ($count > 0) {
-                                                    // UPDATE jika data sudah ada dalam tabel
-                                                    $sql_update = "UPDATE clustering SET 
+                                            if ($clusterIteration == 20) {
+                                                foreach ($clusters as $cluster => $values) {
+                                                    if ($count > 0) {
+                                                        // UPDATE jika data sudah ada dalam tabel
+                                                        $sql_update = "UPDATE clustering SET 
                                                 cluster='{$values['cluster']}',
                                                 cluster_sold='{$values['cluster_sold']}',
                                                 cluster_price='{$values['cluster_price']}',
@@ -621,15 +633,16 @@ function calculateMAPE($actual, $forecast)
                                                 lowest='{$values['lowest']}',
                                                 middle='{$values['middle']}',
                                                 highest='{$values['highest']}' WHERE id='{$values['id']}'";
-                                                    $conn->query($sql_update);
-                                                } else {
-                                                    // INSERT jika data belum ada dalam tabel
-                                                    $sql_insert = "INSERT INTO clustering 
+                                                        $conn->query($sql_update);
+                                                    } else {
+                                                        // INSERT jika data belum ada dalam tabel
+                                                        $sql_insert = "INSERT INTO clustering 
                                                             (id, cluster, cluster_sold, cluster_price, cluster_sold_per_1000, cluster_price_per_1000, category, lowest, middle, highest)
                                                             VALUES 
                                                             ('{$values['id']}','{$values['cluster']}', '{$values['cluster_sold']}', '{$values['cluster_price']}', '{$values['cluster_sold_per_1000']}', '{$values['cluster_price_per_1000']}', '{$values['category']}', '{$values['lowest']}', '{$values['middle']}', '{$values['highest']}')";
 
-                                                    $conn->query($sql_insert);
+                                                        $conn->query($sql_insert);
+                                                    }
                                                 }
                                             }
                                             foreach ($dataSalesCluster as $key => $values) {
@@ -683,16 +696,54 @@ function calculateMAPE($actual, $forecast)
 
                                                     $conn->query($sql_insert);
                                                 }
+                                            }
+                                            // if ($clusterIteration == 10) {
+
+                                            $totalCluster1 = 0;
+                                            $totalCluster2 = 0;
+                                            $totalCluster3 = 0;
+                                        }
+                                        // echo "<pre>";
+                                        // print_r($totalData);
+                                        // print_r($randomSales);
+                                        // print_r($beetweenClassVariation);
+                                        // print_r($totalWithinClassVariation);
+                                        // print_r($rasio);
+                                        // echo "</pre>";
+                                    }
+                                    if ($reloadtrend == 'true') {
+                                        // get from sales_cluster all data
+                                        $sql_sales_cluster = "SELECT * FROM sales_cluster";
+                                        // if sales_cluster empty
+                                        $result_sales_cluster = $conn->query($sql_sales_cluster);
+                                        if ($result_sales_cluster->num_rows == 0) {
+                                            // reloadcluster = true
+                                            header("Location: dashboard.php?reload=true&reloadcluster=true&reloadtrend=true");
+                                        } else {
+                                            // ulang sales_cluster untuk mendapatkan trend $id_item
+                                            $sql_sales_cluster = "SELECT * FROM sales_cluster";
+                                            $result_sales_cluster = $conn->query($sql_sales_cluster);
+                                            $data_sales_cluster = array();
+                                            $iwwww = 0;
+                                            $push_trend_moment = array();
+                                            $trendMoments = array();
+                                            foreach ($result_sales_cluster as $key => $value) {
+                                                $iwwww = $iwwww + 1;
+                                                // echo $iwwww . "<br>";
+                                                $id_item = $value['id_item'];
                                                 // get all data from sales with id_item 2 tahun lalu join item
-                                                // $th2 = $year + 1;
-                                                // $sql_2th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th2}'";
-                                                // $th1 = $year;
-                                                // $sql_1th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th1}'";
+                                                $th2 = $year + 1;
+                                                $sql_2th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th2}'";
+                                                $th1 = $year;
+                                                $sql_1th = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND s.year='{$th1}'";
                                                 // $sql_combine = "$sql_2th UNION $sql_1th";
                                                 // $result_sales = $conn->query($sql_combine);
                                                 $tahunini = date('Y');
                                                 $sql_sales = "SELECT i.id AS id_item, i.name, i.unit, s.sold, s.month, s.year, s.code, s.id_user FROM sales s JOIN items i ON s.id_item=i.id WHERE s.id_item='{$id_item}' AND year <> '{$tahunini}'";
                                                 $result_sales = $conn->query($sql_sales);
+                                                // echo "<pre>";
+                                                // print_r($result_sales);
+                                                // echo "</pre>";
                                                 // echo "jumlah data: " . $result_sales->num_rows . "<br>";
                                                 // SELECT `id`, `code`, `sold`, `month`, `year`, `created_at`, `updated_at`, `id_item`, `id_user` FROM `sales` WHERE 1
                                                 $sigma_y = 0;
@@ -772,38 +823,6 @@ function calculateMAPE($actual, $forecast)
                                                 $cccXXXX = $cccYATAS - $cccBATAS;
                                                 $aREAL = $cccXXXX / $cccAATAS;
 
-
-                                                // if ($id_item == 101) {
-                                                //     echo "jumlah data: " . $n . "<br>";
-                                                //     echo "sigma y: " . $sigma_y . "<br>";
-                                                //     echo "sigma x: " . $sigma_x . "<br>";
-                                                //     echo "sigma xy: " . $sigma_xy . "<br>";
-                                                //     echo "sigma x2: " . $sigma_x2 . "<br>";
-                                                //     echo "average x: " . $average_x . "<br>";
-                                                //     echo "average y: " . $average_y . "<br>";
-                                                //     echo "pre Y ATAS: " . $cobaPreYATAS . "<br>";
-                                                //     echo "pre A ATAS: " . $cobaPreAATAS . "<br>";
-                                                //     echo "pre A BAWAH: " . $cobaPreABAWAH . "<br>";
-                                                //     echo "pre Y BAWAH: " . $cobaPreYBAWAH . "<br>";
-                                                //     echo "pre B ATAS: " . $cobaPreBAATAS . "<br>";
-                                                //     echo "pre B BAWAH: " . $cobaPreBBAWAH . "<br>";
-                                                //     echo "times: " . $times . "<br>";
-                                                //     echo "pra Y ATAS: " . $cobaPraYATAS . "<br>";
-                                                //     echo "pra A ATAS: " . $cobaPraAATAS . "<br>";
-                                                //     echo "pra A BAWAH: " . $cobaPraABAWAH . "<br>";
-                                                //     echo "pra Y BAWAH: " . $cobaPraYBAWAH . "<br>";
-                                                //     echo "pra B ATAS: " . $cobaPraBATAS . "<br>";
-                                                //     echo "pra B BAWAH: " . $cobaPraBBAWAH . "<br>";
-                                                //     echo "y baru: " . $cobaYBaru . "<br>";
-                                                //     echo "a baru: " . $cobaABaru . "<br>";
-                                                //     echo "b baru: " . $cobaBBaru . "<br>";
-                                                //     echo "b real: " . $bREAL . "<br>";
-                                                //     echo "ccc y atas: " . $cccYATAS . "<br>";
-                                                //     echo "ccc a atas: " . $cccAATAS . "<br>";
-                                                //     echo "ccc b atas: " . $cccBATAS . "<br>";
-                                                //     echo "ccc xxxx: " . $cccXXXX . "<br>";
-                                                //     echo "a real: " . $aREAL . "<br>";
-                                                // }
                                                 $dateY = date("Y");
                                                 $ape = 0;
                                                 $accuracy = 0;
@@ -831,15 +850,6 @@ function calculateMAPE($actual, $forecast)
                                                     $bPerBln = $bREAL * $xxxx;
                                                     $yPerBln = $aPerBln + $bPerBln;
                                                     $forecast = $yPerBln * $indexMusim;
-                                                    // if($id_item == 101){
-                                                    //     echo "x = " . $xxxx . "<br>";
-                                                    //     echo "a per bulan = " . $aPerBln . "<br>";
-                                                    //     echo "b per bulan = " . $bPerBln . "<br>";
-                                                    //     echo "y per bulan = " . $yPerBln . "<br>";
-                                                    //     echo "index musim = " . $indexMusim . "<br>";
-                                                    //     echo "forecast = " . $forecast . "<br>";
-                                                    // }
-                                                    // SQL get data from sales table tahun ini
                                                     $sql_salesss = "SELECT * FROM sales WHERE month='{$i}' AND id_item='{$id_item}' AND year='{$dateY}'";
                                                     // count data
                                                     $result_salesss = $conn->query($sql_salesss);
@@ -899,58 +909,65 @@ function calculateMAPE($actual, $forecast)
                                                         'mape' => $mape
                                                     );
                                                 }
-
                                                 $mapess = calculateMAPE($actualData, $forecastData);
-
-                                                foreach ($trendMoments as $trendMoment) {
-                                                    $id_item = $trendMoment['id_item'];
-                                                    $id_sale = $trendMoment['id_sale'];
-                                                    $month = $trendMoment['month'];
-                                                    $time_x = $trendMoment['time_x'];
-                                                    $year = $trendMoment['year'];
-                                                    $a = $trendMoment['a'];
-                                                    $b = $trendMoment['b'];
-                                                    $y = $trendMoment['y'];
-                                                    $sales_real = $trendMoment['sales_real'];
-                                                    $forecast = $trendMoment['forecast'];
-                                                    $averageSold = $trendMoment['averageSold'];
-                                                    $indexMusim = $trendMoment['indexMusim'];
-                                                    $ape = $trendMoment['ape'];
-                                                    $accuracy = $trendMoment['accuracy'];
-                                                    if ($sales_real == 0) {
-                                                        $mape = 0;
-                                                    } else {
-                                                        $mape = $mapess;
-                                                    }
-
-                                                    // insert into trend_moment table if not exist yet and update if exist
-                                                    $sql_tm = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
-                                                    $result_tm = $conn->query($sql_tm);
-                                                    // hitung $result_tm->num_rows
-                                                    // INSERT INTO `trends_moment`(`id`, `id_item`, `id_sale`, `month`, `time_x`, `year`, `sales_real`, `a`, `b`, `y`, `averageSold`, `indexMusim`, `forecast`, `ape`, `mape`, `accuracy`) VALUES ('[value-1]','[value-2]','[value-3]','[value-4]','[value-5]','[value-6]','[value-7]','[value-8]','[value-9]','[value-10]','[value-11]','[value-12]','[value-13]','[value-14]','[value-15]','[value-16]')
-                                                    if ($result_tm->num_rows == 0) {
-                                                        $sql_insert_tm = "INSERT INTO trends_moment (id_item, id_sale, month, time_x, year, sales_real, a, b, y, averageSold, indexMusim, forecast, ape, mape, accuracy) VALUES ('{$id_item}','{$id_sale}','{$month}','{$time_x}','{$year}','{$sales_real}','{$a}','{$b}','{$y}','{$averageSold}','{$indexMusim}','{$forecast}','{$ape}','{$mape}','{$accuracy}')";
-                                                        $result_insert_tm = $conn->query($sql_insert_tm);
-                                                    } else {
-                                                        $sql_update_tm = "UPDATE trends_moment SET id_sale='{$id_sale}', time_x='{$time_x}', sales_real='{$sales_real}', a='{$a}', b='{$b}', y='{$y}', averageSold='{$averageSold}', indexMusim='{$indexMusim}', forecast='{$forecast}', ape='{$ape}', mape='{$mape}', accuracy='{$accuracy}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
-                                                        $result_update_tm = $conn->query($sql_update_tm);
+                                                // update data $mape with $mapess in $trendMoments array if $id_item same
+                                                foreach ($trendMoments as $key => $value) {
+                                                    if ($value['id_item'] == $id_item) {
+                                                        $trendMoments[$key]['mape'] = $mapess;
                                                     }
                                                 }
-
-                                                // }
-                                                // $mape = calculateMAPE($Factual, $Fforecast);
-                                                // // update mape trends_moment
-                                                // $sql_update_tm = "UPDATE trends_moment SET mape='{$mape}' WHERE id_item='{$id_item}'";
-                                                // $result_update_tm = $conn->query($sql_update_tm);
-                                                // // echo "<pre>";
-                                                // // print_r($dataTrendMoments);
-                                                // // echo "</pre>";
                                             }
-                                            break;
+                                            // hitung data $push_trend_moment array
+                                            $jumlahData = count($trendMoments);
+                                            // print_r($jumlahData);
+
+                                            foreach ($trendMoments as $key => $value) {
+                                                $id_item = $value['id_item'];
+                                                $id_sale = $value['id_sale'];
+                                                $month = $value['month'];
+                                                $time_x = $value['time_x'];
+                                                $year = $value['year'];
+                                                $a = $value['a'];
+                                                $b = $value['b'];
+                                                $y = $value['y'];
+                                                $sales_real = $value['sales_real'];
+                                                $forecast = $value['forecast'];
+                                                $averageSold = $value['averageSold'];
+                                                $indexMusim = $value['indexMusim'];
+                                                $ape = $value['ape'];
+                                                $accuracy = $value['accuracy'];
+                                                $mape = $value['mape'];
+                                                // Memeriksa apakah data sudah ada dalam tabel
+                                                $sql_check = "SELECT * FROM trends_moment WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
+                                                $result_check = $conn->query($sql_check);
+                                                if ($result_check->num_rows > 0) {
+                                                    // UPDATE jika data sudah ada dalam tabel
+                                                    $sql_update = "UPDATE trends_moment SET 
+                                                            id_sale='{$id_sale}',
+                                                            time_x='{$time_x}',
+                                                            a='{$a}',
+                                                            b='{$b}',
+                                                            y='{$y}',
+                                                            sales_real='{$sales_real}',
+                                                            forecast='{$forecast}',
+                                                            averageSold='{$averageSold}',
+                                                            indexMusim='{$indexMusim}',
+                                                            ape='{$ape}',
+                                                            accuracy='{$accuracy}',
+                                                            mape='{$mape}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
+
+                                                    $conn->query($sql_update);
+                                                } else {
+                                                    // INSERT jika data belum ada dalam tabel
+                                                    $sql_insert = "INSERT INTO trends_moment 
+                                                            (id_item, id_sale, month, time_x, year, a, b, y, sales_real, forecast, averageSold, indexMusim, ape, accuracy, mape)
+                                                            VALUES 
+                                                            ('{$id_item}','{$id_sale}', '{$month}', '{$time_x}', '{$year}', '{$a}', '{$b}', '{$y}', '{$sales_real}', '{$forecast}', '{$averageSold}', '{$indexMusim}', '{$ape}', '{$accuracy}', '{$mape}')";
+
+                                                    $conn->query($sql_insert);
+                                                }
+                                            }
                                         }
-                                        $totalCluster1 = 0;
-                                        $totalCluster2 = 0;
-                                        $totalCluster3 = 0;
                                     }
                                 }
                             }
@@ -963,8 +980,13 @@ function calculateMAPE($actual, $forecast)
                             if ($reload == 'true') { ?>
                                 <div class='flex flex-row gap-2 justify-between items-center bg-green-500 text-white p-2 rounded-md shadow-md'>
                                     <div class='flex flex-row gap-2 items-center'>
-                                        <span class='font-bold'>Data berhasil diupdate</span>
-                                        <span class='font-bold text-sm'><?php echo date('H:i:s'); ?></span>
+                                        <class='font-bold'>Data berhasil diupdate
+                                            <?php if ($reloadcluster == 'true') {
+                                                echo "dan clustering berhasil diupdate";
+                                            } elseif ($reloadtrend == 'true') {
+                                                echo "dan trend berhasil diupdate";
+                                            } ?>.</span>
+                                            <span class='font-bold text-sm'><?php echo date('H:i:s'); ?></span>
                                     </div>
                                 </div>
                         <?php
