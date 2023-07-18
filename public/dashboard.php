@@ -957,7 +957,8 @@ function calculateMAPE($actual, $forecast)
                                                             mape='{$mape}' WHERE id_item='{$id_item}' AND month='{$month}' AND year='{$year}'";
 
                                                     $conn->query($sql_update);
-                                                } else {
+                                                }
+                                                if ($result_check->num_rows == 0) {
                                                     // INSERT jika data belum ada dalam tabel
                                                     $sql_insert = "INSERT INTO trends_moment 
                                                             (id_item, id_sale, month, time_x, year, a, b, y, sales_real, forecast, averageSold, indexMusim, ape, accuracy, mape)
