@@ -1,6 +1,25 @@
 # Skripsi Arip - Web Application for Thesis Process
 
-Skripsi Arip is a web application that is used to help the process of making a thesis. This web application of K-Means method and Trend Moment for drug stock prediction at PT. Lestari Jaya Farma (LJF) in the city of Kediri. This web application is made using the MERN stack (MySQL, PHP, NodeJS) and Tailwind CSS.
+**Project Description: PharmaTrend - Predicting Medicine Stock using K-Means and Trend Moment**
+
+*PharmaTrend* is an innovative web application developed using PHP, Tailwind CSS, and HTML, aimed at addressing the challenges faced by Pharmaceutical Wholesale Distributors (PBF) in accurately forecasting medicine demand and managing stock efficiently. In the highly competitive business landscape, the timely processing and delivery of information are critical factors for a company's success, and PharmaTrend aims to provide a reliable solution to enhance efficiency in data processing.
+
+**Objectives:**
+The primary objective of *PharmaTrend* is to implement the K-Means clustering method and Trend Moment technique to predict medicine stock at PT. Lestari Jaya Farma. Through K-Means clustering, the application categorizes data into high, medium, and low clusters, enabling a better understanding of medicine demand patterns. The Trend Moment method is then applied to forecast demand trends based on historical sales data, facilitating effective inventory management.
+
+**Methodology:**
+The project involves two key methodologies:
+1. **K-Means Clustering:** This method is utilized to cluster the data, classifying 100 medicine items into high, medium, and low-demand categories. The clustering results in 42 high-demand, 32 medium-demand, and 24 low-demand medicine items, allowing PT. Lestari Jaya Farma to prioritize their inventory and respond to customer needs efficiently.
+
+2. **Trend Moment Prediction:** The Trend Moment technique is employed to predict demand trends based on historical sales data. By analyzing past sales patterns, PharmaTrend provides accurate forecasts, helping the company optimize their inventory levels and minimize stockouts.
+
+**Results and Impact:**
+The data processing results in PharmaTrend have been impressive. The Trend Moment predictions were evaluated, revealing a Mean Absolute Percentage Error (MAPE) of 1.30% and an accuracy rate of 98.70%. These remarkable results demonstrate the effectiveness and reliability of the predictive capabilities of the application.
+
+**Conclusion:**
+*PharmaTrend* showcases the successful implementation of advanced data processing techniques to predict medicine stock and demand trends for PT. Lestari Jaya Farma. By utilizing K-Means clustering and Trend Moment prediction, the application empowers the company to make informed decisions, streamline inventory management, and ensure a seamless supply chain. It revolutionizes the way pharmaceutical distributors handle their stock and contributes significantly to PT. Lestari Jaya Farma's success in the highly competitive market.
+
+*Join PharmaTrend today to stay ahead in the pharmaceutical industry and revolutionize your inventory management!*
 
 ## Preparation for the project
 
