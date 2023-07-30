@@ -13,7 +13,7 @@ if (!isset($_GET["search"])) {
 }
 require_once("config.php");
 // item data with pagination and descending order
-$limit = 50;
+$limit = 100;
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
 $start = ($page > 1) ? ($page * $limit) - $limit : 0;
 $currentDate = date("Y-m-d");
